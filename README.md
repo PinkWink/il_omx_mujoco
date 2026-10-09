@@ -12,6 +12,16 @@ git clone --depth 1 https://github.com/ROBOTIS-GIT/robotis_mujoco_menagerie.git 
 sudo usermod -aG dialout $USER   # serial port access; log out and back in
 ```
 
+MuJoCo is pinned to `mujoco==3.15.0` in `pyproject.toml`. Keep it pinned: MJCF attributes and
+the Python API can change between minor versions, and contact/solver changes make rollouts
+differ slightly, so recorded demos and trained policies are only reproducible on the same
+version. The pip wheel bundles its own `libmujoco.so`, so each venv can hold a different
+version without conflict. Check with:
+
+```bash
+.venv/bin/python -c "import mujoco; print(mujoco.__version__)"   # 3.15.0
+```
+
 ## Usage
 
 ```bash
