@@ -1,0 +1,9 @@
+.venv/
+outputs/
+__pycache__/
+*.egg-info/
+.ruff_cache/
+third_party/
+data/
+HANDOFF.md
+calibration/leader_eeprom_backup_*.json

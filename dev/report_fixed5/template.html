@@ -1,0 +1,383 @@
+<title>고정 자세 시연 5개 실험</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
+<style>
+/* Layout: one lab-notebook column (~44rem) with full-width figures; results lead, method and caveats follow. */
+:root {
+  --bg: #f6f7f7;
+  --surface: #fdfdfc;
+  --ink: #111315;
+  --ink-2: #4c5157;
+  --muted: #858a8f;
+  --rule: #dfe2e4;
+  --axis: #c0c4c7;
+  --random: #2a78d6;   /* 30 random demos */
+  --fixed: #eb6834;    /* 5 fixed demos */
+  --band: rgba(42,120,214,0.07);
+  --code-bg: #eceeef;
+  --sans: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #121416; --surface: #181b1e; --ink: #f2f3f4; --ink-2: #b9bec3; --muted: #8b9096;
+    --rule: #2b2f33; --axis: #3c4147; --random: #3987e5; --fixed: #d95926;
+    --band: rgba(57,135,229,0.10); --code-bg: #1f2327; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #121416; --surface: #181b1e; --ink: #f2f3f4; --ink-2: #b9bec3; --muted: #8b9096;
+  --rule: #2b2f33; --axis: #3c4147; --random: #3987e5; --fixed: #d95926;
+  --band: rgba(57,135,229,0.10); --code-bg: #1f2327; color-scheme: dark;
+}
+
+body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-size: 16px; line-height: 1.7; }
+.page { max-width: 46rem; margin: 0 auto; padding-inline: 20px; padding-block: 48px 72px; display: flex; flex-direction: column; gap: 56px; }
+h1, h2, h3 { text-wrap: balance; line-height: 1.3; margin: 0; }
+h1 { font-size: 2rem; font-weight: 700; letter-spacing: -0.01em; }
+h2 { font-size: 1.35rem; font-weight: 700; }
+h3 { font-size: 1.02rem; font-weight: 700; }
+p { margin: 0; }
+section { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+.eyebrow { font-family: var(--mono); font-size: 0.76rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.lede { font-size: 1.12rem; color: var(--ink-2); }
+.meta { display: flex; flex-wrap: wrap; gap: 6px 18px; font-family: var(--mono); font-size: 0.8rem; color: var(--muted); }
+header { display: flex; flex-direction: column; gap: 14px; }
+.num { font-variant-numeric: tabular-nums; }
+code, .mono { font-family: var(--mono); font-size: 0.86em; }
+code { background: var(--code-bg); padding: 1px 5px; border-radius: 4px; }
+
+/* Headline comparison */
+.verdict { display: grid; grid-template-columns: 1fr 1fr; border-top: 2px solid var(--ink); border-bottom: 1px solid var(--rule); }
+.verdict > div { padding: 18px 4px 20px; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.verdict > div + div { border-left: 1px solid var(--rule); padding-left: 20px; }
+.verdict .who { display: flex; align-items: center; gap: 8px; font-size: 0.92rem; color: var(--ink-2); }
+.swatch { width: 10px; height: 10px; border-radius: 2px; flex: none; }
+.verdict .big { font-family: var(--mono); font-size: 3rem; font-weight: 500; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.verdict .sub { font-size: 0.88rem; color: var(--muted); }
+.findings { display: grid; gap: 10px; padding: 0; margin: 0; list-style: none; }
+.findings li { display: grid; grid-template-columns: 7.5rem 1fr; gap: 12px; }
+.findings b { font-weight: 500; color: var(--ink-2); }
+
+/* Figures */
+figure { margin: 0; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+figcaption { font-size: 0.86rem; color: var(--muted); }
+.chart { background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; padding: 16px 12px 8px; position: relative; }
+.chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 0.85rem; color: var(--ink-2); padding: 0 6px 6px; }
+.legend span { display: inline-flex; align-items: center; gap: 7px; }
+.tip { position: absolute; pointer-events: none; background: var(--ink); color: var(--bg); font-size: 0.8rem; line-height: 1.45; padding: 6px 9px; border-radius: 5px; white-space: nowrap; transform: translate(-50%, calc(-100% - 12px)); }
+.tip[hidden] { display: none !important; }
+svg text { font-family: var(--sans); fill: var(--muted); font-size: 12px; }
+svg .lbl { fill: var(--ink-2); font-size: 12.5px; font-weight: 500; }
+svg .hit { fill: transparent; cursor: default; }
+svg .hit:focus { outline: none; }
+svg .hit:focus-visible + .ring, svg .hit:hover + .ring { opacity: 1; }
+svg .ring { opacity: 0; pointer-events: none; }
+
+.shots { display: grid; gap: 18px; }
+.strip { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.strip img { border-radius: 4px; border: 1px solid var(--rule); width: 100%; height: auto; }
+figure img { height: auto; }
+.strip .head { display: flex; align-items: center; gap: 8px; font-size: 0.92rem; font-weight: 500; }
+.ticks { display: grid; grid-template-columns: repeat(5, 1fr); font-family: var(--mono); font-size: 0.74rem; color: var(--muted); text-align: center; }
+.pair { display: grid; grid-template-columns: 1fr 2fr; gap: 14px; align-items: start; }
+.pair figure img { border-radius: 4px; border: 1px solid var(--rule); }
+
+.table-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font-weight: 500; color: var(--ink-2); font-size: 0.82rem; }
+td.n, th.n { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; }
+details { border-top: 1px solid var(--rule); padding-top: 10px; }
+summary { cursor: pointer; font-size: 0.86rem; color: var(--ink-2); }
+summary:focus-visible { outline: 2px solid var(--random); outline-offset: 2px; }
+
+.note { border-left: 3px solid var(--fixed); padding: 4px 0 4px 14px; color: var(--ink-2); }
+.points { display: grid; gap: 18px; counter-reset: pt; }
+.points > div { display: grid; grid-template-columns: 1fr; gap: 4px; }
+pre { margin: 0; background: var(--code-bg); border-radius: 6px; padding: 14px 16px; overflow-x: auto; font-family: var(--mono); font-size: 0.8rem; line-height: 1.6; }
+footer { font-size: 0.82rem; color: var(--muted); border-top: 1px solid var(--rule); padding-top: 16px; }
+
+@media (max-width: 560px) {
+  h1 { font-size: 1.6rem; }
+  .verdict { grid-template-columns: 1fr; }
+  .verdict > div + div { border-left: 0; border-top: 1px solid var(--rule); padding-left: 4px; }
+  .verdict .big { font-size: 2.4rem; }
+  .findings li { grid-template-columns: 1fr; gap: 0; }
+  .pair { grid-template-columns: 1fr; }
+  .ticks { font-size: 0.66rem; }
+}
+</style>
+
+<main class="page">
+  <header>
+    <div class="eyebrow">OMX 모방학습 · 실험 노트 #2</div>
+    <h1>고정 자세 시연 5개 실험</h1>
+    <p class="lede">큐브를 항상 같은 자리, 같은 각도에 두고 만든 시연 5개로 ACT를 학습하면 무엇을 배울까? 큐브 위치가 매번 다른 시연 30개로 학습한 정책과 비교했습니다.</p>
+    <div class="meta"><span>2026-10-09</span><span>MuJoCo · OMX follower</span><span>LeRobot 0.6.1 · ACT</span><span>10 Hz · 320×240 × 2 cams</span></div>
+  </header>
+
+  <section aria-labelledby="s-result">
+    <h2 id="s-result">결과 요약</h2>
+    <div class="verdict" role="group" aria-label="무작위 큐브 배치 50회 성공률">
+      <div>
+        <div class="who"><span class="swatch" style="background:var(--fixed)"></span>고정 자세 시연 5개</div>
+        <div class="big">18%</div>
+        <div class="sub">무작위 배치 50회 중 9회 성공</div>
+      </div>
+      <div>
+        <div class="who"><span class="swatch" style="background:var(--random)"></span>무작위 자세 시연 30개</div>
+        <div class="big">86%</div>
+        <div class="sub">무작위 배치 50회 중 43회 성공</div>
+      </div>
+    </div>
+    <ul class="findings">
+      <li><b>학습한 자리</b><span>5,000 스텝부터 30,000 스텝까지 모든 체크포인트가 5/5 성공했습니다.</span></li>
+      <li><b>2 cm 벗어나면</b><span>성공률이 떨어지기 시작해 3 cm부터는 0/8입니다. 무작위 배치에서 성공한 9회는 모두 큐브가 학습 위치에서 1.7 cm 안에 놓인 경우였습니다.</span></li>
+      <li><b>실패하는 방식</b><span>큐브가 어디 있든 학습 때 큐브가 있던 자리로 가서 허공을 잡고, 외운 궤적대로 트레이까지 갑니다.</span></li>
+      <li><b>학습 loss</b><span>고정 5개 모델이 오히려 더 낮았습니다(L1 0.024 대 0.042). 외우기 쉬운 데이터일수록 loss가 낮습니다.</span></li>
+    </ul>
+  </section>
+
+  <section aria-labelledby="s-sweep">
+    <h2 id="s-sweep">큐브를 얼마나 옮겨도 잡을까</h2>
+    <p>학습 위치 (x 0.21 m, y −0.06 m)에서 큐브를 1, 2, 3, 4, 6 cm 옮겨 8방향으로 한 번씩 돌렸습니다. 큐브 회전은 0°로 두었습니다.</p>
+    <figure>
+      <div class="chart" id="sweep">
+        <div class="legend">
+          <span><span class="swatch" style="background:var(--fixed)"></span>고정 자세 시연 5개</span>
+          <span><span class="swatch" style="background:var(--random)"></span>무작위 자세 시연 30개</span>
+        </div>
+        <svg viewBox="0 0 640 300" role="img" aria-labelledby="sweep-t"><title id="sweep-t">이동 거리별 성공률. 고정 5개는 3 cm부터 0%, 무작위 30개는 4 cm까지 88% 이상.</title></svg>
+        <div class="tip" hidden></div>
+      </div>
+      <figcaption>30,000 스텝 체크포인트. 0 cm는 1회, 나머지는 거리마다 8회. 파란 음영은 무작위 30개 데이터에서 큐브가 놓인 범위(학습 위치 기준 ±4 cm 사각형)입니다.</figcaption>
+      <details>
+        <summary>표로 보기 (5,000 스텝 체크포인트 포함)</summary>
+        <div class="table-wrap"><table>
+          <thead><tr><th>모델</th><th class="n">0 cm</th><th class="n">1 cm</th><th class="n">2 cm</th><th class="n">3 cm</th><th class="n">4 cm</th><th class="n">6 cm</th></tr></thead>
+          <tbody>
+            <tr><td>고정 5개 · 30k</td><td class="n">1/1</td><td class="n">8/8</td><td class="n">7/8</td><td class="n">0/8</td><td class="n">0/8</td><td class="n">0/8</td></tr>
+            <tr><td>고정 5개 · 5k</td><td class="n">1/1</td><td class="n">8/8</td><td class="n">5/8</td><td class="n">0/8</td><td class="n">0/8</td><td class="n">0/8</td></tr>
+            <tr><td>무작위 30개 · 30k</td><td class="n">1/1</td><td class="n">8/8</td><td class="n">8/8</td><td class="n">7/8</td><td class="n">7/8</td><td class="n">3/8</td></tr>
+          </tbody>
+        </table></div>
+      </details>
+    </figure>
+    <p>무작위 30개 모델도 6 cm에서는 3/8로 떨어집니다. 6 cm는 그 모델의 학습 데이터 범위 밖이라서, 두 모델 모두 <strong>본 적 있는 범위 안에서만</strong> 잘한다는 점은 같습니다. 차이는 그 범위의 넓이입니다.</p>
+  </section>
+
+  <section aria-labelledby="s-what">
+    <h2 id="s-what">실패할 때 무엇을 하나</h2>
+    <div class="shots">
+      <div class="strip">
+        <div class="head"><span class="swatch" style="background:var(--fixed)"></span>고정 5개 모델, 처음 보는 큐브 위치 (평가 시드 1001)</div>
+        <img src="{{fail_fixed}}" alt="로봇이 큐브 옆의 빈 자리로 내려가 허공을 잡은 뒤 빈 그리퍼로 트레이까지 이동한다" width="1200" height="180">
+        <div class="ticks"><span>0 s</span><span>2 s</span><span>3 s</span><span>5 s</span><span>20 s · 실패</span></div>
+      </div>
+      <div class="strip">
+        <div class="head"><span class="swatch" style="background:var(--random)"></span>무작위 30개 모델, 같은 큐브 위치</div>
+        <img src="{{ok_random}}" alt="로봇이 큐브 위로 이동해 집어 올리고 트레이에 내려놓는다" width="1200" height="180">
+        <div class="ticks"><span>0 s</span><span>2 s</span><span>3 s</span><span>5 s</span><span>성공</span></div>
+      </div>
+    </div>
+    <p>고정 5개 모델은 카메라에 큐브가 다른 곳에 보여도 학습 때 큐브가 있던 자리로 갑니다. 영상을 보고 판단하기보다 한 가지 궤적을 외워서 다시 재생하는 상태입니다.</p>
+  </section>
+
+  <section aria-labelledby="s-curve">
+    <h2 id="s-curve">학습을 오래 하면 나아질까</h2>
+    <figure>
+      <div class="chart" id="curve">
+        <div class="legend">
+          <span><span class="swatch" style="background:var(--fixed)"></span>고정 자세 시연 5개</span>
+          <span><span class="swatch" style="background:var(--random)"></span>무작위 자세 시연 30개</span>
+        </div>
+        <svg viewBox="0 0 640 280" role="img" aria-labelledby="curve-t"><title id="curve-t">학습 스텝별 무작위 배치 성공률. 무작위 30개는 10%에서 86%로 오르고, 고정 5개는 22%에서 18%로 그대로.</title></svg>
+        <div class="tip" hidden></div>
+      </div>
+      <figcaption>같은 무작위 배치 50개(평가 시드 1000–1049)에서 잰 성공률. 고정 5개 모델은 5k와 30k만 평가했습니다.</figcaption>
+    </figure>
+    <p>고정 5개 모델은 5k에서 이미 학습 위치를 완벽히 해냈고, 30k까지 학습해도 처음 보는 위치의 성공률은 그대로였습니다(22% → 18%, 50회 평가의 편차 범위). 데이터에 없는 정보는 학습을 오래 해도 생기지 않습니다. 반면 무작위 30개 모델은 30k까지 계속 오르고 있어서 더 학습할 여지가 있습니다.</p>
+  </section>
+
+  <section aria-labelledby="s-dist">
+    <h2 id="s-dist">우연히 성공한 9회</h2>
+    <figure>
+      <div class="chart" id="dist">
+        <svg viewBox="0 0 640 230" role="img" aria-labelledby="dist-t"><title id="dist-t">고정 5개 모델의 무작위 배치 성공을 학습 위치와의 거리별로 나눔. 1.5 cm 안 6/6, 1.5–2.5 cm 3/10, 그 밖 0/34.</title></svg>
+        <div class="tip" hidden></div>
+      </div>
+      <figcaption>고정 5개 모델(30k)의 무작위 배치 50회를, 큐브와 학습 위치 사이 거리로 나눠 본 성공률. 막대 위 숫자는 성공/시도.</figcaption>
+    </figure>
+    <p>18%라는 숫자는 일반화 능력이 아니라 큐브가 우연히 학습 위치 근처에 떨어진 비율입니다. 1–2 cm 정도의 여유는 그리퍼가 벌어진 폭 덕분으로 보입니다.</p>
+  </section>
+
+  <section aria-labelledby="s-yaw">
+    <h3 id="s-yaw">회전은 거의 영향이 없었습니다</h3>
+    <p>학습 위치에서 큐브만 ±5°, ±10°, ±20°, ±30°, ±45° 돌렸을 때 고정 5개 모델은 10/10, 무작위 30개 모델은 8/10 성공했습니다(±10°와 ±20°에서 1회씩 실패). 정육면체는 90°마다 같은 모양이고 그리퍼가 충분히 벌어지기 때문에 물리적으로 여유가 있는 것으로 추정합니다. 학습으로 얻은 능력인지는 따로 확인하지 않았습니다.</p>
+  </section>
+
+  <section aria-labelledby="s-setup">
+    <h2 id="s-setup">실험 설정</h2>
+    <div class="pair">
+      <figure>
+        <img src="{{start_fixed}}" alt="고정 자세 데이터의 시작 화면. 큐브가 한 자리에 놓여 있다" width="480" height="360">
+        <figcaption><span style="color:var(--ink-2)">고정 5개</span> · 5개 모두 이 화면에서 시작</figcaption>
+      </figure>
+      <figure>
+        <img src="{{starts_random}}" alt="무작위 데이터 6개 에피소드의 시작 화면. 큐브 위치와 각도가 모두 다르다" width="960" height="480">
+        <figcaption><span style="color:var(--ink-2)">무작위 30개</span> · 에피소드 0, 5, 10, 15, 20, 25의 시작 화면</figcaption>
+      </figure>
+    </div>
+    <div class="table-wrap"><table>
+      <thead><tr><th></th><th>고정 5개</th><th>무작위 30개</th></tr></thead>
+      <tbody>
+        <tr><td>시연</td><td>IK 스크립트 5회</td><td>IK 스크립트 30회</td></tr>
+        <tr><td>큐브 위치</td><td>x 0.21, y −0.06 고정</td><td>x 0.17–0.25, y −0.10–−0.02 무작위</td></tr>
+        <tr><td>큐브 회전</td><td>0° 고정</td><td>−45°–45° 무작위</td></tr>
+        <tr><td>프레임</td><td class="num">385 (77 × 5)</td><td class="num">2,310 (77 × 30)</td></tr>
+        <tr><td>학습</td><td colspan="2">ACT, 30,000 스텝, 배치 8, 청크 2 s(20 스텝), AMP, RTX 5060 Ti에서 약 25분</td></tr>
+        <tr><td>성공 판정</td><td colspan="2">20초 안에 큐브가 트레이 안 바닥에 놓이고 그리퍼가 닿아 있지 않음</td></tr>
+      </tbody>
+    </table></div>
+    <p class="note">고정 5개 시연은 서로 완전히 똑같습니다(행동 값 차이 0.0). 시뮬레이션과 스크립트가 모두 결정적이라서 사실상 시연 1개를 5번 넣은 것과 같습니다. 사람이 같은 자리에서 5번 시연하면 매번 조금씩 다르므로, 이 실험은 다양성이 0인 극단적인 경우입니다.</p>
+  </section>
+
+  <section aria-labelledby="s-class">
+    <h2 id="s-class">수업에서 짚을 점</h2>
+    <div class="points">
+      <div><h3>개수보다 다양성</h3><p>같은 상황을 반복한 시연은 몇 개를 모아도 시연 1개만큼의 정보입니다. 녹화할 때 큐브 위치와 각도를 넓게 바꿔야 합니다.</p></div>
+      <div><h3>loss는 성능이 아니다</h3><p>낮은 학습 loss는 데이터를 잘 외웠다는 뜻일 뿐입니다. 정책의 실력은 처음 보는 상황에서 직접 돌려 봐야 알 수 있습니다.</p></div>
+      <div><h3>평가 범위를 정직하게</h3><p>학습한 자리에서만 시험하면 두 모델 모두 100%입니다. 평가 배치가 학습 배치와 겹치지 않아야 차이가 드러납니다.</p></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="s-repro">
+    <h2 id="s-repro">재현</h2>
+    <pre>python scripts/scripted_pick_place.py --episodes 5 --cube-pose 0.21 -0.06 0 --dataset omx_cube_fixed5
+python scripts/train.py --dataset omx_cube_fixed5 --min-episodes 5
+python scripts/eval.py --run omx_cube_fixed5_act --episodes 50
+python scripts/eval.py --run omx_cube_fixed5_act --episodes 5 --cube-pose 0.21 -0.06 0</pre>
+    <p>한계: 거리별 8회, 회전별 2회로 표본이 작습니다. 결정적 시뮬레이션의 스크립트 시연이라 사람이 텔레옵으로 만든 시연과는 결과가 다를 수 있습니다.</p>
+  </section>
+
+  <footer>il_omx_mujoco · 평가 시드 1000–1049 · 체크포인트 outputs/train/omx_cube_fixed5_act, omx_cube_scripted_act</footer>
+</main>
+
+<script>
+(() => {
+  const NS = "http://www.w3.org/2000/svg";
+  const el = (tag, attrs, parent) => {
+    const n = document.createElementNS(NS, tag);
+    for (const k in attrs) n.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(n);
+    return n;
+  };
+  const txt = (s, attrs, parent) => { const t = el("text", attrs, parent); t.textContent = s; return t; };
+
+  function tooltip(root) {
+    const tip = root.querySelector(".tip");
+    return {
+      show(svg, x, y, html) {
+        const r = svg.getBoundingClientRect(), box = root.getBoundingClientRect();
+        const vb = svg.viewBox.baseVal, s = r.width / vb.width;
+        tip.innerHTML = html;
+        tip.style.left = (r.left - box.left + x * s) + "px";
+        tip.style.top = (r.top - box.top + y * s) + "px";
+        tip.hidden = false;
+      },
+      hide() { tip.hidden = true; },
+    };
+  }
+
+  // Shared frame: y = success rate 0..100 %
+  function frame(svg, W, H, m, xTicks, xLabel) {
+    const iw = W - m.l - m.r, ih = H - m.t - m.b;
+    const y = v => m.t + ih * (1 - v / 100);
+    for (const v of [0, 25, 50, 75, 100]) {
+      el("line", { x1: m.l, x2: W - m.r, y1: y(v), y2: y(v), stroke: v === 0 ? "var(--axis)" : "var(--rule)", "stroke-width": 1 }, svg);
+      txt(v + "%", { x: m.l - 8, y: y(v) + 4, "text-anchor": "end" }, svg);
+    }
+    for (const [x, label] of xTicks) txt(label, { x, y: H - m.b + 18, "text-anchor": "middle" }, svg);
+    if (xLabel) txt(xLabel, { x: m.l + iw / 2, y: H - 4, "text-anchor": "middle" }, svg);
+    return { y, iw, ih };
+  }
+
+  function lineChart(id, opts) {
+    const root = document.getElementById(id), svg = root.querySelector("svg"), tip = tooltip(root);
+    const W = 640, H = opts.H, m = { l: 48, r: 92, t: 14, b: 44 };
+    const x = v => m.l + (v - opts.x0) / (opts.x1 - opts.x0) * (W - m.l - m.r);
+    const f = frame(svg, W, H, m, opts.ticks.map(t => [x(t), opts.tickLabel(t)]), opts.xLabel);
+    if (opts.band) {
+      el("rect", { x: x(opts.band[0]), y: m.t, width: x(opts.band[1]) - x(opts.band[0]), height: f.ih, fill: "var(--band)" }, svg);
+      txt(opts.bandLabel, { x: x(opts.band[0]) + 10, y: f.y(30), "font-size": 11 }, svg);
+    }
+    for (const s of opts.series) {
+      const pts = s.data.map(d => [x(d.x), f.y(d.y)]);
+      el("path", { d: "M" + pts.map(p => p.join(",")).join("L"), fill: "none", stroke: s.color, "stroke-width": 2, "stroke-linejoin": "round", "stroke-linecap": "round" }, svg);
+      const last = pts[pts.length - 1];
+      txt(s.label, { x: last[0] + 10, y: last[1] + (s.labelDy || 0) + 4, class: "lbl" }, svg);
+    }
+    for (const s of opts.series) {
+      s.data.forEach(d => {
+        const cx = x(d.x), cy = f.y(d.y);
+        el("circle", { cx, cy, r: 4.5, fill: s.color, stroke: "var(--surface)", "stroke-width": 2 }, svg);
+        const hit = el("circle", { cx, cy, r: 13, class: "hit", tabindex: 0, "aria-label": `${s.name}, ${opts.tickLabel(d.x)}: ${d.k}` }, svg);
+        el("circle", { cx, cy, r: 8, fill: "none", stroke: s.color, "stroke-width": 1.5, class: "ring" }, svg);
+        const on = () => tip.show(svg, cx, cy, `<b>${s.name}</b><br>${opts.tickLabel(d.x)} · ${d.k} (${Math.round(d.y)}%)`);
+        hit.addEventListener("mouseenter", on); hit.addEventListener("focus", on);
+        hit.addEventListener("mouseleave", tip.hide); hit.addEventListener("blur", tip.hide);
+      });
+    }
+  }
+
+  const FIXED = "var(--fixed)", RANDOM = "var(--random)";
+  const pct = (a, b) => 100 * a / b;
+
+  lineChart("sweep", {
+    H: 300, x0: 0, x1: 6, ticks: [0, 1, 2, 3, 4, 6], tickLabel: t => t + " cm", xLabel: "학습 위치에서 옮긴 거리",
+    band: [0, 4], bandLabel: "무작위 30개 데이터 범위",
+    series: [
+      { name: "무작위 자세 시연 30개", label: "무작위 30개", color: RANDOM, labelDy: -2,
+        data: [[0,1,1],[1,8,8],[2,8,8],[3,7,8],[4,7,8],[6,3,8]].map(([x,a,b]) => ({ x, y: pct(a,b), k: `${a}/${b}` })) },
+      { name: "고정 자세 시연 5개", label: "고정 5개", color: FIXED, labelDy: -6,
+        data: [[0,1,1],[1,8,8],[2,7,8],[3,0,8],[4,0,8],[6,0,8]].map(([x,a,b]) => ({ x, y: pct(a,b), k: `${a}/${b}` })) },
+    ],
+  });
+
+  lineChart("curve", {
+    H: 280, x0: 5, x1: 30, ticks: [5, 10, 15, 20, 25, 30], tickLabel: t => t + "k", xLabel: "학습 스텝",
+    series: [
+      { name: "무작위 자세 시연 30개", label: "무작위 30개", color: RANDOM,
+        data: [[5,5],[10,12],[15,22],[20,24],[25,30],[30,43]].map(([x,a]) => ({ x, y: pct(a,50), k: `${a}/50` })) },
+      { name: "고정 자세 시연 5개", label: "고정 5개", color: FIXED,
+        data: [[5,11],[30,9]].map(([x,a]) => ({ x, y: pct(a,50), k: `${a}/50` })) },
+    ],
+  });
+
+  // Bars: fixed-5 successes by distance from the training pose
+  (() => {
+    const root = document.getElementById("dist"), svg = root.querySelector("svg"), tip = tooltip(root);
+    const W = 640, H = 230, m = { l: 48, r: 16, t: 24, b: 44 };
+    const bins = [["0–1.5 cm", 6, 6], ["1.5–2.5 cm", 3, 10], ["2.5–3.5 cm", 0, 13], ["3.5 cm 이상", 0, 21]];
+    const slot = (W - m.l - m.r) / bins.length, bw = Math.min(64, slot * 0.5);
+    const f = frame(svg, W, H, m, bins.map((b, i) => [m.l + slot * (i + 0.5), b[0]]), "학습 위치와 큐브 사이 거리");
+    bins.forEach(([label, a, n], i) => {
+      const v = pct(a, n), cx = m.l + slot * (i + 0.5), x0 = cx - bw / 2, top = f.y(v), base = f.y(0);
+      if (v > 0) {
+        const h = base - top, r = Math.min(4, h);
+        el("path", { d: `M${x0},${base} V${top + r} Q${x0},${top} ${x0 + r},${top} H${x0 + bw - r} Q${x0 + bw},${top} ${x0 + bw},${top + r} V${base} Z`, fill: FIXED }, svg);
+      } else {
+        el("line", { x1: x0, x2: x0 + bw, y1: base - 1, y2: base - 1, stroke: FIXED, "stroke-width": 2 }, svg);
+      }
+      txt(`${a}/${n}`, { x: cx, y: top - 8, "text-anchor": "middle", class: "lbl" }, svg);
+      const hit = el("rect", { x: cx - slot / 2 + 4, y: m.t, width: slot - 8, height: base - m.t, class: "hit", tabindex: 0, "aria-label": `${label}: ${a}/${n}` }, svg);
+      const on = () => tip.show(svg, cx, top, `<b>${label}</b><br>${a}/${n} 성공 (${Math.round(v)}%)`);
+      hit.addEventListener("mouseenter", on); hit.addEventListener("focus", on);
+      hit.addEventListener("mouseleave", tip.hide); hit.addEventListener("blur", tip.hide);
+    });
+  })();
+})();
+</script>

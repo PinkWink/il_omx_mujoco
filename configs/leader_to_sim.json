@@ -1,0 +1,14 @@
+{
+  "_comment": "sim_rad = sign * (leader_deg + offset_deg). Gripper: sim_rad = (leader - zero) * 3.6 deg, i.e. the leader trigger angle is applied directly.",
+  "joints": {
+    "shoulder_pan":  {"sim_joint": "Joint1", "sign": 1, "offset_deg": 0.0},
+    "shoulder_lift": {"sim_joint": "Joint2", "sign": 1, "offset_deg": 0.0},
+    "elbow_flex":    {"sim_joint": "Joint3", "sign": 1, "offset_deg": 0.0},
+    "wrist_flex":    {"sim_joint": "Joint4", "sign": 1, "offset_deg": 0.0},
+    "wrist_roll":    {"sim_joint": "Joint5", "sign": 1, "offset_deg": 0.0}
+  },
+  "gripper": {
+    "_comment": "Leader gripper value (0..100) at which the sim gripper is closed (0 rad). 50 = servo center, same convention as the arm joints.",
+    "zero": 50.0
+  }
+}
