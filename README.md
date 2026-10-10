@@ -121,6 +121,15 @@ yaw +-45 deg. `teleop.py`, `record.py`, `scripted_pick_place.py` and `eval.py` a
 With scripted demos instead of human ones (Evaluation above), step 1 gave 100% at the training pose
 and 18% on random poses; 50 varied demos (`omx_cube_random50`) gave 100% and 98% (50 placements).
 
+## Lecture pages
+
+`docs/lecture/` holds the Korean lecture pages (one markdown file per page), the scripts that draw every
+figure and terminal capture from real runs, and `publish_confluence.py`. Viewer screenshots come from
+`dev/fake_leader.py` (teleop/record driven by a replayed IK demo) and `dev/capture_window.py`.
+
+Early checkpoints (5,000-step runs saved every 1,000 steps): the 5 fixed demos already succeed at the
+training pose from 2,000 steps; the 50 random demos are unstable there until 5,000 steps.
+
 ## Layout
 
 | Path | Contents |
