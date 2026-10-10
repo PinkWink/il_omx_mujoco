@@ -4,8 +4,10 @@
 
 The window is the one whose WM_CLASS is MuJoCo AND whose _NET_WM_PID is the launched process,
 so no other window (browser, terminal) can be picked. Frames: OUT_DIR/frame_000.png ...
-The command's stdout/stderr go to OUT_DIR/stdout.log.
+The command's stdout/stderr go to OUT_DIR/stdout.log. A command still running after the last
+frame gets SIGINT (Ctrl+C).
 """
+import signal
 import subprocess
 import sys
 import time
@@ -31,13 +33,17 @@ def main():
     cmd = sys.argv[sep + 1:]
     out_dir.mkdir(parents=True, exist_ok=True)
     log = open(out_dir / "stdout.log", "w")
-    proc = subprocess.Popen(cmd, stdout=log, stderr=subprocess.STDOUT)
+    # Restore default SIGINT in the child (a background shell starts it ignored), so Ctrl+C works.
+    proc = subprocess.Popen(cmd, stdout=log, stderr=subprocess.STDOUT,
+                            preexec_fn=lambda: signal.signal(signal.SIGINT, signal.SIG_DFL))
     wid = find_window(proc.pid)
     if wid is None:
         print("no MuJoCo window of pid", proc.pid)
         proc.terminate()
         return
     print("window", wid, "pid", proc.pid)
+    # A window that is not drawn yet shows whatever is behind it on screen; wait before the first shot.
+    time.sleep(3.0)
     t0 = time.time()
     for i in range(count):
         if proc.poll() is not None:
@@ -48,7 +54,12 @@ def main():
         except subprocess.TimeoutExpired:
             break
         time.sleep(max(0.0, t0 + (i + 1) * interval - time.time()))
-    proc.wait()
+    if proc.poll() is None:              # still running after the last frame: stop it like Ctrl+C
+        proc.send_signal(signal.SIGINT)
+    try:
+        proc.wait(timeout=60)
+    except subprocess.TimeoutExpired:
+        proc.kill()
     print("done, exit", proc.returncode)
 
 
