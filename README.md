@@ -119,7 +119,7 @@ yaw +-45 deg. `teleop.py`, `record.py`, `scripted_pick_place.py` and `eval.py` a
 ```
 
 With scripted demos instead of human ones (Evaluation above), step 1 gave 100% at the training pose
-and 18% on random poses, and 30 varied demos gave 86% on random poses.
+and 18% on random poses; 50 varied demos (`omx_cube_random50`) gave 100% and 98% (50 placements).
 
 ## Layout
 
