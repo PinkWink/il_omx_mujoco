@@ -88,7 +88,7 @@ MUJOCO_GL=egl .venv/bin/python docs/lecture/env_tour.py
 
 ## 4. 코드와 설정
 
-### 큐브 · 트레이 · global 카메라 - scene_cube.xml 발췌
+### 큐브 · global 카메라 - scene_cube.xml 발췌
 
 ```xml
 <!-- models/scene_cube.xml (발췌) -->
@@ -100,8 +100,12 @@ MUJOCO_GL=egl .venv/bin/python docs/lecture/env_tour.py
   <geom name="cube" type="box" size="0.015 0.015 0.015" mass="0.025" material="cube_blue"
     condim="4" friction="1.2 0.02 0.001" solref="0.004 1"/>
 </body>
+```
 
-<!-- 트레이: 안쪽 80 mm, 벽 높이 12 mm -->
+### 트레이 - scene_cube.xml 발췌
+
+```xml
+<!-- models/scene_cube.xml (발췌) 트레이: 안쪽 80 mm, 벽 높이 12 mm -->
 <body name="tray" pos="0.18 0.13 0">
   <geom name="tray_floor" type="box" pos="0 0 0.001" size="0.044 0.044 0.001" material="tray"/>
   <geom name="tray_wall_px" type="box" pos="0.042 0 0.006" size="0.002 0.044 0.006" material="tray"/>
@@ -109,7 +113,7 @@ MUJOCO_GL=egl .venv/bin/python docs/lecture/env_tour.py
 </body>
 ```
 
-### 손가락 패드 · wrist 카메라 · 그리퍼 - omx_follower.xml 발췌
+### 액추에이터 · 손가락 패드 - omx_follower.xml 발췌
 
 ```xml
 <!-- models/omx_follower.xml (발췌) -->
@@ -119,6 +123,15 @@ MUJOCO_GL=egl .venv/bin/python docs/lecture/env_tour.py
   <geom type="box" group="3" density="0" condim="4" friction="1.5 0.02 0.001" solref="0.004 1"/>
 </default>
 
+<equality>
+  <joint joint1="Gripper_mimic" joint2="Gripper" polycoef="0 -1 0 0 0"/>   <!-- mimic = -Gripper -->
+</equality>
+```
+
+### wrist 카메라 · tcp · 손가락 - omx_follower.xml 발췌
+
+```xml
+<!-- models/omx_follower.xml (발췌) -->
 <body name="link5" pos="0.0287 0 0">
   <joint name="Joint5" class="Joint5"/>
   <camera name="wrist" pos="0.045 0 0.075" xyaxes="0 -1 0 0.66 0 0.75" fovy="70"/>
@@ -129,13 +142,9 @@ MUJOCO_GL=egl .venv/bin/python docs/lecture/env_tour.py
     <geom class="finger_pad" name="finger_l_base" pos="0.025 0.005 0" size="0.015 0.004 0.015"/>
     ...
 </body>
-
-<equality>
-  <joint joint1="Gripper_mimic" joint2="Gripper" polycoef="0 -1 0 0 0"/>   <!-- mimic = -Gripper -->
-</equality>
 ```
 
-### reset · step - env.py 발췌
+### reset (1) 팔 자세 - env.py 발췌
 
 ```python
 # il_omx/env.py (발췌)
@@ -148,6 +157,13 @@ def reset(self, seed=None, cube_pose=None, arm_q=None, render=True):
         self.data.qpos[self.qpos_ids] = q
         self.data.qpos[self.qpos_ids[-1] + 1] = -q[-1]     # 그리퍼 mimic 관절
         self.data.ctrl[self.actuator_ids] = q
+    ...
+```
+
+### reset (2) 큐브 놓기 - env.py 발췌
+
+```python
+# il_omx/env.py (발췌) reset() 이어서
     if cube_pose is None:                                  # 무작위 자리 (TaskConfig 범위)
         c = self.cfg
         cube_pose = (self.rng.uniform(*c.cube_x_range), self.rng.uniform(*c.cube_y_range),
@@ -158,7 +174,12 @@ def reset(self, seed=None, cube_pose=None, arm_q=None, render=True):
     self.data.qpos[a + 3:a + 7] = [np.cos(yaw / 2), 0, 0, np.sin(yaw / 2)]   # z축 회전 쿼터니언
     mujoco.mj_forward(self.model, self.data)
     return self.get_observation(render)
+```
 
+### step - env.py 발췌
+
+```python
+# il_omx/env.py (발췌)
 def step(self, action, render=True):
     action = np.clip(np.asarray(action, dtype=float), self.ctrl_low, self.ctrl_high)
     self.data.ctrl[self.actuator_ids] = action                       # 관절 목표 6개

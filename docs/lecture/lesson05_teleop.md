@@ -77,30 +77,38 @@ cube_pose = cube_pose_from_args(args)                 # --fixed-cube 이면 고�
 env.reset(arm_q=mapper(leader.get_action()), cube_pose=cube_pose, render=False)   # 팔은 리더 자세에서 시작
 ```
 
-### 10 Hz 루프 - teleop.py 발췌
+### 10 Hz 루프 (1) 리셋 또는 한 스텝 - teleop.py 발췌
 
 ```python
 # scripts/teleop.py (발췌)
 while viewer is None or viewer.is_running():
-    t0 = time.perf_counter()
     action = leader.get_action()                      # 리더 6개 값
     target = mapper(action)                           # MuJoCo 관절 목표 (rad)
-    render = t0 - last_camera >= camera_dt - 0.5 * dt
     with viewer.lock():
-        # BACKSPACE 는 뷰어가 시뮬레이션을 리셋한다 (sim 시간이 줄어듦) → 새 에피소드로 바꿈
-        if reset_event.is_set() or env.data.time < sim_time:
+        if reset_event.is_set() or env.data.time < sim_time:   # ENTER 또는 BACKSPACE
             reset_event.clear()
             episodes.new()
             obs = env.reset(arm_q=target, cube_pose=cube_pose, render=render)
         else:
             obs = env.step(target, render=render)     # 0.1 s 진행
+        ...
+```
+
+- BACKSPACE 는 뷰어가 시뮬레이션을 직접 리셋합니다. sim 시간이 줄어든 것을 보고 새 에피소드로 바꿉니다.
+
+### 10 Hz 루프 (2) 성공 판정과 화면 - teleop.py 발췌
+
+```python
+# scripts/teleop.py (발췌) 루프 이어서
+    with viewer.lock():
+        ...
         sim_time = env.data.time
         episodes.update(env.is_success())             # 성공 순간의 시간을 기억 (배너)
     overlay.set_cameras({cam: obs[cam] for cam in CAMERA_NAMES})
     overlay.set_banner(episodes.banner())
     overlay.flush()
     viewer.sync()
-    time.sleep(max(0.0, dt - (time.perf_counter() - t0)))   # 0.1 s 를 채움
+    time.sleep(max(0.0, dt - (time.perf_counter() - t0)))   # t0 = 루프 시작 시각. 0.1 s 를 채움
 ```
 
 ### 뷰어 시점 - viewer_overlay.py 발췌

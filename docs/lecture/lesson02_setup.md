@@ -145,13 +145,12 @@ ls outputs
 
 ## 4. 코드와 설정
 
-### pyproject.toml
+### pyproject.toml - 의존성
 
 ```text
-# pyproject.toml
+# pyproject.toml (발췌)
 [project]
 name = "il-omx"
-version = "0.1.0"
 requires-python = ">=3.10"
 dependencies = [
     "mujoco==3.15.0",                                # 버전 고정 (3절)
@@ -160,6 +159,14 @@ dependencies = [
     "imageio[ffmpeg]",                               # 평가 영상 저장
     "lerobot[dynamixel,dataset,training]==0.6.1",    # 리더 드라이버 · LeRobotDataset · ACT 학습
 ]
+```
+
+### pyproject.toml - 패키지
+
+```text
+# pyproject.toml (발췌)
+[project]
+version = "0.1.0"
 
 [tool.setuptools]
 packages = ["il_omx"]                                # pip install -e . 로 import il_omx 가능

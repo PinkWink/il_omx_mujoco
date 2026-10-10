@@ -79,7 +79,7 @@ cd ~/il_omx_mujoco
 
 ## 4. 코드와 설정
 
-### 녹화 루프 - record.py 발췌
+### 녹화 루프 (1) ENTER 와 기록 - record.py 발췌
 
 ```python
 # scripts/record.py (발췌)
@@ -93,7 +93,14 @@ with viewer.lock():
             recording, success_frame = True, None
     if recording and finish is None:
         recorder.add(obs, target)                               # 시각 t 의 관측 + 시각 t 의 행동
-    obs = env.step(target)
+    ...
+```
+
+### 녹화 루프 (2) 저장 · 버림 판단 - record.py 발췌
+
+```python
+# scripts/record.py (발췌) with viewer.lock() 안 이어서
+    obs = env.step(target)                                      # 0.1 s 진행
     if recording and finish is None:
         if success_frame is None and env.is_success():
             success_frame = recorder.frames                     # 성공 순간
@@ -118,7 +125,7 @@ def dataset_features(image_height: int, image_width: int) -> dict:
     return features
 ```
 
-### EpisodeRecorder - dataset.py 발췌
+### EpisodeRecorder (1) 기록 · 저장 - dataset.py 발췌
 
 ```python
 # il_omx/dataset.py (발췌)
@@ -132,7 +139,12 @@ class EpisodeRecorder:
         self.dataset.finalize()              # 파일을 닫아 바로 읽을 수 있게
         self.dataset = open_dataset(*self._open_args)
         self.frames = 0
+```
 
+### EpisodeRecorder (2) 버리기 - dataset.py 발췌
+
+```python
+# il_omx/dataset.py (발췌) class EpisodeRecorder 이어서
     def discard(self):                       # 취소 · 시간 초과
         if self.dataset.has_pending_frames():
             self.dataset.clear_episode_buffer()

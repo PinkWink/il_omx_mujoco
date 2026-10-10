@@ -64,7 +64,7 @@ cd ~/il_omx_mujoco
 
 ## 3. 코드
 
-### plan - scripted_pick_place.py 발췌
+### plan (1) 손가락 방향 - scripted_pick_place.py 발췌
 
 ```python
 # scripts/scripted_pick_place.py (발췌)
@@ -76,6 +76,13 @@ def plan(env, ik, cube_yaw):
     tray = env.data.xpos[env.tray_body].copy()
     yaw_c = grasp_yaw(cube_yaw, np.arctan2(cube[1], cube[0]))     # 큐브를 잡을 손가락 방향
     yaw_t = grasp_yaw(cube_yaw, np.arctan2(tray[1], tray[0]))     # 트레이에서의 손가락 방향
+    ...
+```
+
+### plan (2) 경유점 8개 - scripted_pick_place.py 발췌
+
+```python
+# scripts/scripted_pick_place.py (발췌) plan() 이어서
     waypoints = [
         (cube + [0, 0, 0.08], yaw_c, GRIP_OPEN, 1.3),            # (tcp 위치, 방향, 그리퍼, 초)
         (cube + [0, 0, 0.005], yaw_c, GRIP_OPEN, 1.0),
@@ -86,6 +93,12 @@ def plan(env, ik, cube_yaw):
         (tray + [0, 0, 0.05], yaw_t, GRIP_OPEN, 0.5),
         (tray + [0, 0, 0.12], yaw_t, GRIP_OPEN, 0.7),
     ]
+```
+
+### plan (3) 경유점마다 IK - scripted_pick_place.py 발췌
+
+```python
+# scripts/scripted_pick_place.py (발췌) plan() 이어서
     q = env.data.qpos[:5].copy()
     segments = []
     for pos, yaw, grip, seconds in waypoints:
@@ -106,7 +119,7 @@ def grasp_yaw(cube_yaw: float, joint1_yaw: float) -> float:
     return cube_yaw + k * np.pi / 2
 ```
 
-### OmxIK.solve - il_omx/ik.py 발췌
+### OmxIK.solve (1) 오차 계산 - il_omx/ik.py 발췌
 
 ```python
 # il_omx/ik.py (발췌)
@@ -120,6 +133,13 @@ for _ in range(iters):                                            # 최대 200
     err[3:] = rot_weight * d.site_xmat[self.site].reshape(3, 3) @ err[3:]
     if np.linalg.norm(err[:3]) < 1e-4 and np.linalg.norm(err[3:]) < 1e-3:
         break
+    ...
+```
+
+### OmxIK.solve (2) 관절 갱신 - il_omx/ik.py 발췌
+
+```python
+# il_omx/ik.py (발췌) 반복 안 이어서
     mujoco.mj_jacSite(m, d, jacp, jacr, self.site)                # 야코비안
     J = np.vstack([jacp[:, :ARM_DOFS], rot_weight * jacr[:, :ARM_DOFS]])
     dq = J.T @ np.linalg.solve(J @ J.T + damping * np.eye(6), err)

@@ -98,14 +98,19 @@ def connect_leader(port: str = DEFAULT_PORT) -> OmxLeader:
     return leader
 ```
 
-### LeaderToSim - il_omx/leader_mapping.py
+### 단위 - il_omx/leader_mapping.py
 
 ```python
 # il_omx/leader_mapping.py (발췌)
 ARM_MOTORS = ["shoulder_pan", "shoulder_lift", "elbow_flex", "wrist_flex", "wrist_roll"]
 DEG_PER_UNIT = 180.0 / 100.0           # 팔: -100 ~ 100 = 한 바퀴
 GRIPPER_DEG_PER_UNIT = 360.0 / 100.0   # 그리퍼: 0 ~ 100 = 한 바퀴
+```
 
+### LeaderToSim - il_omx/leader_mapping.py
+
+```python
+# il_omx/leader_mapping.py (발췌)
 class LeaderToSim:
     def __call__(self, action: dict) -> np.ndarray:
         """Return the 6-dim sim action [Joint1..5, Gripper] in radians."""
@@ -145,7 +150,7 @@ class LeaderToSim:
 
 - LeRobot 보정 파일. 모터에 저장된 값과 같으면 `connect()` 가 다시 보정하지 않습니다.
 
-### configure() - LeRobot omx_leader.py 발췌
+### configure() (1) 팔 모터 - LeRobot omx_leader.py 발췌
 
 ```python
 # lerobot/teleoperators/omx_leader/omx_leader.py (0.6.1, 발췌)
@@ -156,6 +161,12 @@ def configure(self) -> None:
         if motor != "gripper":
             self.bus.write("Operating_Mode", motor, OperatingMode.EXTENDED_POSITION.value)
         ...
+```
+
+### configure() (2) 그리퍼 트리거 - LeRobot omx_leader.py 발췌
+
+```python
+# lerobot/teleoperators/omx_leader/omx_leader.py (0.6.1, 발췌) configure() 이어서
     self.bus.write("Operating_Mode", "gripper", OperatingMode.CURRENT_POSITION.value)
     self.bus.write("Current_Limit", "gripper", 100)
     self.bus.write("Goal_Current", "gripper", 100)

@@ -71,7 +71,7 @@ cd ~/il_omx_mujoco
 
 ## 3. 코드와 설정
 
-### LeRobot 학습 명령 만들기 - train.py 발췌
+### 학습 명령 (1) 데이터셋 · 정책 - train.py 발췌
 
 ```python
 # scripts/train.py (발췌)
@@ -85,11 +85,19 @@ cmd = [sys.executable, "-m", "lerobot.scripts.lerobot_train",
        "--policy.push_to_hub=false",
        "--wandb.enable=false",
        f"--output_dir={run_dir}",
-       f"--steps={args.steps}",                     # 30000
-       f"--batch_size={args.batch_size}",           # 8
-       f"--save_freq={args.save_freq}",             # 5000
-       f"--policy.device={device}",
-       f"--policy.use_amp={str(device == 'cuda').lower()}"]
+       ..., *common]
+```
+
+### 학습 명령 (2) 학습 길이 · 장치 - train.py 발췌
+
+```python
+# scripts/train.py (발췌)
+common = [f"--steps={args.steps}",                  # 30000
+          f"--batch_size={args.batch_size}",        # 8
+          f"--save_freq={args.save_freq}",          # 5000
+          f"--num_workers={args.num_workers}",
+          f"--policy.device={device}",
+          f"--policy.use_amp={str(device == 'cuda').lower()}"]
 env = dict(os.environ, SVT_LOG="1", HF_HUB_OFFLINE="1")   # 인터넷(Hub) 을 쓰지 않음
 subprocess.run(cmd, env=env, cwd=ROOT)
 ```
