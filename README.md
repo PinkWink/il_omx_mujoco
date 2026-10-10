@@ -62,7 +62,7 @@ Datasets stay in `data/` (git-ignored) and are never uploaded.
 
 ## Training
 
-`scripts/train.py` runs LeRobot's ACT training offline on `data/<dataset>` (at least 10 episodes).
+`scripts/train.py` runs LeRobot's ACT training offline on `data/<dataset>` (at least 5 episodes).
 Defaults: 30,000 steps, batch 8, a checkpoint every 5,000 steps (~0.6 GB each), ACT action chunk of
 2 s (20 steps at 10 Hz), mixed precision on NVIDIA GPUs. Ctrl+C stops it; `--resume` continues from
 the last checkpoint, and `--resume --steps N` trains longer.
@@ -86,7 +86,7 @@ The scripted IK demo itself solves all 50 placements.
 All failures were missed or slipped grasps: the policy then carries on to the tray empty-handed,
 because the demos never show a retry. Human demos that include recoveries help here.
 
-Diversity experiment: 5 scripted demos with the cube always at the same pose (`--cube-pose 0.21 -0.06 0`;
+Diversity experiment: 5 scripted demos with the cube always at the same pose (`--fixed-cube`, i.e. x 0.21, y -0.06, yaw 0;
 the sim is deterministic, so the 5 demos are identical). Same training, 30k steps.
 
 | Eval | 5 fixed demos | 30 random demos |
@@ -97,6 +97,29 @@ the sim is deterministic, so the 5 demos are identical). Same training, 30k step
 
 The fixed-pose policy replays the memorized motion wherever the cube is, although its training loss is
 lower (L1 0.024 vs 0.042).
+
+## Class exercise: 5 fixed demos vs 50 varied demos
+
+`--fixed-cube` puts the cube at the same pose every episode (x 0.21, y -0.06, yaw 0, the center of
+the random region). Without it, every episode gets a new pose within x 0.17-0.25, y -0.10 to -0.02,
+yaw +-45 deg. `teleop.py`, `record.py`, `scripted_pick_place.py` and `eval.py` all take it.
+
+```bash
+# 1. 5 demos, cube never moves
+.venv/bin/python scripts/record.py --dataset my_fixed5 --num-episodes 5 --fixed-cube
+.venv/bin/python scripts/train.py --dataset my_fixed5
+.venv/bin/python scripts/eval.py --run my_fixed5_act --fixed-cube --episodes 10 --view   # same pose as the demos
+.venv/bin/python scripts/eval.py --run my_fixed5_act --episodes 20 --view                # cube moved and rotated
+
+# 2. 50 demos, new cube pose every episode
+.venv/bin/python scripts/record.py --dataset my_random50 --num-episodes 50
+.venv/bin/python scripts/train.py --dataset my_random50
+.venv/bin/python scripts/eval.py --run my_random50_act --fixed-cube --episodes 10 --view
+.venv/bin/python scripts/eval.py --run my_random50_act --episodes 20 --view
+```
+
+With scripted demos instead of human ones (Evaluation above), step 1 gave 100% at the training pose
+and 18% on random poses, and 30 varied demos gave 86% on random poses.
 
 ## Layout
 

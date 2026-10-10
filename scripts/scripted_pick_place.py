@@ -17,7 +17,13 @@ os.environ.setdefault("SVT_LOG", "1")
 
 import numpy as np
 
-from il_omx.env import OmxCubeEnv, TaskConfig
+from il_omx.env import (
+    OmxCubeEnv,
+    TaskConfig,
+    add_cube_args,
+    cube_pose_from_args,
+    describe_cube,
+)
 from il_omx.ik import OmxIK, top_down_rotation
 
 GRIP_OPEN = 0.6
@@ -98,8 +104,7 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument("--episodes", type=int, default=10)
     p.add_argument("--seed", type=int, default=0, help="episode i uses cube seed (seed + i)")
-    p.add_argument("--cube-pose", type=float, nargs=3, metavar=("X", "Y", "YAW_DEG"),
-                   help="same cube pose every episode instead of a random one")
+    add_cube_args(p)
     p.add_argument("--video", default=None)
     p.add_argument("--dataset", default=None, help="record successful episodes into data/<dataset>")
     args = p.parse_args()
@@ -113,10 +118,8 @@ def main():
         from il_omx.dataset import EpisodeRecorder
         recorder = EpisodeRecorder(args.dataset, cfg.fps, cfg.image_height, cfg.image_width)
         print(f"dataset: {recorder.root}  ({recorder.num_episodes} episodes already)")
-    cube_pose = None
-    if args.cube_pose:
-        x, y, yaw_deg = args.cube_pose
-        cube_pose = (x, y, np.deg2rad(yaw_deg))
+    cube_pose = cube_pose_from_args(args)
+    print(f"cube: {describe_cube(cube_pose)}")
     successes = 0
     for ep in range(args.episodes):
         ok = run_episode(env, ik, seed=args.seed + ep, frames=frames, recorder=recorder, cube_pose=cube_pose)

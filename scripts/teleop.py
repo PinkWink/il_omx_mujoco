@@ -3,11 +3,11 @@
 The follower's position actuators track the leader at the recording rate (10 Hz), so practice
 feels the same as recording, and the arm can grasp the cube.
 The global and wrist camera images (what the policy will see) are shown on the right.
-Press ENTER in the viewer for a new episode (new cube position). SUCCESS shows once the cube
+Press ENTER in the viewer for a new episode (new cube position; the same one with --fixed-cube). SUCCESS shows once the cube
 rests in the tray and the gripper has let go. BACKSPACE (the viewer's own simulation reset) also
 starts a new episode, with the arm placed at the leader's pose.
 
-  python scripts/teleop.py [--port /dev/ttyACM0] [--camera-fps 10]
+  python scripts/teleop.py [--port /dev/ttyACM0] [--camera-fps 10] [--fixed-cube]
 
 Lower --camera-fps on slow PCs (0 turns the camera views off); control stays at 10 Hz.
 """
@@ -22,7 +22,14 @@ os.environ.setdefault("MUJOCO_GL", "egl")
 
 import mujoco
 
-from il_omx.env import CAMERA_NAMES, OmxCubeEnv, TaskConfig
+from il_omx.env import (
+    CAMERA_NAMES,
+    OmxCubeEnv,
+    TaskConfig,
+    add_cube_args,
+    cube_pose_from_args,
+    describe_cube,
+)
 from il_omx.leader import DEFAULT_PORT, connect_leader
 from il_omx.leader_mapping import LeaderToSim
 from il_omx.teleop_ui import ENTER_KEYS, open_viewer, status_line
@@ -68,6 +75,7 @@ def main():
     p.add_argument("--port", default=DEFAULT_PORT)
     p.add_argument("--camera-fps", type=float, default=float(TaskConfig.fps),
                    help="camera view refresh rate; lower it on slow PCs, 0 = off")
+    add_cube_args(p)
     p.add_argument("--headless", action="store_true", help="no viewer (for testing)")
     p.add_argument("--duration", type=float, default=0.0, help="stop after N seconds (0 = forever)")
     args = p.parse_args()
@@ -76,7 +84,9 @@ def main():
     mapper = LeaderToSim()
     cameras_on = args.camera_fps > 0
     env = OmxCubeEnv(TaskConfig(), render=cameras_on)
-    env.reset(arm_q=mapper(leader.get_action()), render=False)
+    cube_pose = cube_pose_from_args(args)
+    print(f"cube: {describe_cube(cube_pose)}")
+    env.reset(arm_q=mapper(leader.get_action()), cube_pose=cube_pose, render=False)
     dt = 1.0 / env.cfg.fps
     camera_dt = 1.0 / args.camera_fps if cameras_on else float("inf")
 
@@ -111,7 +121,7 @@ def main():
                     if reset_event.is_set() or env.data.time < sim_time:
                         reset_event.clear()
                         episodes.new()
-                        obs = env.reset(arm_q=target, render=render)
+                        obs = env.reset(arm_q=target, cube_pose=cube_pose, render=render)
                     else:
                         obs = env.step(target, render=render)
                     sim_time = env.data.time

@@ -1,7 +1,7 @@
 """Record teleoperated demos into a local LeRobotDataset (data/<dataset>, git-ignored, never uploaded).
 
 Viewer controls (click the viewer window first so it has keyboard focus):
-  ENTER  idle      -> new cube position, start recording
+  ENTER  idle      -> new cube position (same one with --fixed-cube), start recording
   ENTER      recording -> cancel and discard the episode
   BACKSPACE  idle      -> delete the episode saved last in this session (once, e.g. a sloppy demo)
   BACKSPACE  recording -> discard the episode (the viewer also resets the simulation on BACKSPACE)
@@ -9,6 +9,7 @@ A successful episode (cube resting in the tray, gripper released) is saved autom
 short post-roll. Episodes longer than --max-episode-s are discarded. Only successful demos are kept.
 
   python scripts/record.py [--dataset omx_cube_to_tray] [--num-episodes 50] [--fps 10]
+  python scripts/record.py --dataset my_fixed5 --num-episodes 5 --fixed-cube   # cube never moves
 
 The simulation advances exactly 1/fps per recorded frame, so the data stays consistent even if a
 slow PC cannot keep up in real time (the teleop just feels slower). Lower --fps on slow PCs.
@@ -29,7 +30,14 @@ import mujoco
 import numpy as np
 
 from il_omx.dataset import DATA_DIR, EpisodeRecorder
-from il_omx.env import CAMERA_NAMES, OmxCubeEnv, TaskConfig
+from il_omx.env import (
+    CAMERA_NAMES,
+    OmxCubeEnv,
+    TaskConfig,
+    add_cube_args,
+    cube_pose_from_args,
+    describe_cube,
+)
 from il_omx.leader import DEFAULT_PORT, connect_leader
 from il_omx.leader_mapping import LeaderToSim
 from il_omx.teleop_ui import BACKSPACE_KEY, ENTER_KEYS, open_viewer, status_line
@@ -48,6 +56,7 @@ def main():
     p.add_argument("--image-height", type=int, default=TaskConfig.image_height)
     p.add_argument("--image-width", type=int, default=TaskConfig.image_width)
     p.add_argument("--max-episode-s", type=float, default=60.0)
+    add_cube_args(p)
     p.add_argument("--streaming-encoding", action="store_true",
                    help="encode video while recording (faster saving, needs a capable CPU)")
     args = p.parse_args()
@@ -59,7 +68,9 @@ def main():
     leader = connect_leader(args.port)
     mapper = LeaderToSim()
     env = OmxCubeEnv(TaskConfig(fps=args.fps, image_height=args.image_height, image_width=args.image_width))
-    obs = env.reset(arm_q=mapper(leader.get_action()))
+    cube_pose = cube_pose_from_args(args)
+    print(f"cube: {describe_cube(cube_pose)}")
+    obs = env.reset(arm_q=mapper(leader.get_action()), cube_pose=cube_pose)
     dt = 1.0 / env.cfg.fps
 
     enter, backspace = threading.Event(), threading.Event()
@@ -96,7 +107,7 @@ def main():
                 # The viewer resets the simulation on BACKSPACE (at the next sync). Restore a proper
                 # episode start, and drop a recording in progress since its frames are now broken.
                 if env.data.time < sim_time:
-                    obs = env.reset(arm_q=target)
+                    obs = env.reset(arm_q=target, cube_pose=cube_pose)
                     if recording:
                         backspace.clear()  # this press cancels the episode; it must not delete a saved one
                         finish = (False, "backspace")
@@ -106,7 +117,7 @@ def main():
                     if recording:
                         finish = (False, "cancelled")
                     elif recorder.num_episodes < args.num_episodes:
-                        obs = env.reset(arm_q=target)
+                        obs = env.reset(arm_q=target, cube_pose=cube_pose)
                         recording, success_frame = True, None
 
                 if recording and finish is None:

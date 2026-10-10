@@ -19,7 +19,7 @@ import torch
 from il_omx.dataset import DATA_DIR, ROOT
 
 TRAIN_DIR = ROOT / "outputs" / "train"
-MIN_EPISODES = 10
+MIN_EPISODES = 5
 
 
 def pick_device(requested: str) -> str:

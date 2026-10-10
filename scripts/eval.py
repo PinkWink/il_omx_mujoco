@@ -4,9 +4,11 @@
   python scripts/eval.py --run omx_cube_scripted_act --episodes 50
   python scripts/eval.py --policy outputs/train/<run>/checkpoints/010000/pretrained_model
   python scripts/eval.py --view                           # watch it in the MuJoCo viewer (real time)
+  python scripts/eval.py --run my_fixed5_act --fixed-cube --episodes 10   # only the training pose
 
 Cube placements come from --seed (default 1000), so they differ from scripted demos (seeds 0..)
-and are the same for every policy you compare. --cube-pose X Y YAW_DEG uses one fixed pose instead.
+and are the same for every policy you compare. --fixed-cube uses the fixed pose of
+`record.py --fixed-cube` instead (--cube-pose X Y YAW_DEG for another one).
 An episode succeeds when the cube rests in the tray with the gripper open, like in recording;
 it fails after --max-s seconds.
 A video of the first --video-episodes episodes is written next to the results.
@@ -24,7 +26,14 @@ import numpy as np
 import torch
 
 from il_omx.dataset import ROOT, TASK
-from il_omx.env import CAMERA_NAMES, OmxCubeEnv, TaskConfig
+from il_omx.env import (
+    CAMERA_NAMES,
+    OmxCubeEnv,
+    TaskConfig,
+    add_cube_args,
+    cube_pose_from_args,
+    describe_cube,
+)
 
 TRAIN_DIR = ROOT / "outputs" / "train"
 
@@ -65,8 +74,7 @@ def main():
     p.add_argument("--policy", help="a pretrained_model folder (overrides --run)")
     p.add_argument("--episodes", type=int, default=20)
     p.add_argument("--seed", type=int, default=1000, help="episode i uses cube seed (seed + i)")
-    p.add_argument("--cube-pose", type=float, nargs=3, metavar=("X", "Y", "YAW_DEG"),
-                   help="same cube pose every episode instead of random ones")
+    add_cube_args(p)
     p.add_argument("--max-s", type=float, default=20.0, help="fail an episode after this many seconds")
     p.add_argument("--video-episodes", type=int, default=5, help="episodes to put in the video (0 = none)")
     p.add_argument("--view", action="store_true", help="show the rollouts in the MuJoCo viewer")
@@ -93,10 +101,9 @@ def main():
     frames = []
     results = []
     max_steps = round(args.max_s * cfg.fps)
-    cube_pose = None
-    if args.cube_pose:
-        x, y, yaw_deg = args.cube_pose
-        cube_pose = (x, y, np.deg2rad(yaw_deg))
+    cube_pose = cube_pose_from_args(args)
+    print(f"cube: {describe_cube(cube_pose)}")
+    pose_deg = None if cube_pose is None else [cube_pose[0], cube_pose[1], float(np.rad2deg(cube_pose[2]))]
     for ep in range(args.episodes):
         obs = env.reset(seed=args.seed + ep, cube_pose=cube_pose)
         policy.reset()  # drop the action chunk queued from the previous episode
@@ -127,8 +134,8 @@ def main():
     times = [r["time_s"] for r in results if r["success"]]
     summary = {"policy": str(path), "episodes": args.episodes, "successes": n_ok,
                "success_rate": n_ok / args.episodes, "mean_time_s": float(np.mean(times)) if times else None,
-               "seed": args.seed, "cube_pose": args.cube_pose, "max_s": args.max_s, "results": results}
-    tag = (f"pose{'_'.join(f'{v:g}' for v in args.cube_pose)}" if args.cube_pose else f"seed{args.seed}") \
+               "seed": args.seed, "cube_pose": pose_deg, "max_s": args.max_s, "results": results}
+    tag = (f"pose{'_'.join(f'{v:g}' for v in pose_deg)}" if pose_deg else f"seed{args.seed}") \
         + f"_n{args.episodes}"
     (out_dir / f"{tag}.json").write_text(json.dumps(summary, indent=2))
     print(f"\nsuccess rate: {n_ok}/{args.episodes} ({100 * n_ok / args.episodes:.0f}%)"

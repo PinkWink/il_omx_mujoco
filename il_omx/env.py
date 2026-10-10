@@ -15,6 +15,36 @@ SCENE_XML = ROOT / "models" / "scene_cube.xml"
 JOINT_NAMES = ["Joint1", "Joint2", "Joint3", "Joint4", "Joint5", "Gripper"]
 CAMERA_NAMES = ["global", "wrist"]
 
+# The cube pose for --fixed-cube: the center of the random spawn region, not rotated (x, y, yaw rad).
+FIXED_CUBE_POSE = (0.21, -0.06, 0.0)
+
+
+def add_cube_args(parser):
+    """--fixed-cube / --cube-pose, shared by teleop, record, scripted demos and eval."""
+    g = parser.add_mutually_exclusive_group()
+    g.add_argument("--fixed-cube", action="store_true",
+                   help=f"same cube pose every episode (x {FIXED_CUBE_POSE[0]}, y {FIXED_CUBE_POSE[1]}, yaw 0); "
+                        "default: a new random pose each episode")
+    g.add_argument("--cube-pose", type=float, nargs=3, metavar=("X", "Y", "YAW_DEG"),
+                   help="same cube pose every episode, given explicitly")
+
+
+def cube_pose_from_args(args) -> tuple | None:
+    """(x, y, yaw rad) for a fixed cube, or None for a random pose each episode."""
+    if args.fixed_cube:
+        return FIXED_CUBE_POSE
+    if args.cube_pose:
+        x, y, yaw_deg = args.cube_pose
+        return (x, y, np.deg2rad(yaw_deg))
+    return None
+
+
+def describe_cube(cube_pose: tuple | None) -> str:
+    if cube_pose is None:
+        return "random pose each episode"
+    x, y, yaw = cube_pose
+    return f"fixed at x {x:g}, y {y:g}, yaw {np.rad2deg(yaw):g} deg"
+
 
 @dataclass
 class TaskConfig:
