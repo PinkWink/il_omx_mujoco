@@ -19,7 +19,7 @@ PROMPT = "pw@laptop:~/il_omx_mujoco$ "
 TITLE = "pw@laptop: ~/il_omx_mujoco — bash"
 
 
-def render(lines, name, title=TITLE, highlight=()):
+def render(lines, name, title=TITLE, highlight=(), prompt=PROMPT):
     """lines: ("prompt", command) or ("out", text). Lines containing a highlight string are yellow."""
     W, LH = 14.0, 0.36
     H = LH * len(lines) + 1.0
@@ -34,7 +34,7 @@ def render(lines, name, title=TITLE, highlight=()):
     y = H - 0.95
     for kind, text in lines:
         if kind == "prompt":
-            t = ax.text(0.35, y, PROMPT, va="center", fontsize=9.6, color="#5FD75F", family=MONO)
+            t = ax.text(0.35, y, prompt, va="center", fontsize=9.6, color="#5FD75F", family=MONO)
             fig.canvas.draw()
             x1 = ax.transData.inverted().transform((t.get_window_extent().x1, 0))[0]
             ax.text(x1, y, text, va="center", fontsize=9.6, color="#FFFFFF", family=MONO)
