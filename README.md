@@ -10,6 +10,8 @@ python3 -m venv .venv
 .venv/bin/pip install -e .
 git clone --depth 1 https://github.com/ROBOTIS-GIT/robotis_mujoco_menagerie.git third_party/robotis_mujoco_menagerie
 sudo usermod -aG dialout $USER   # serial port access; log out and back in
+.venv/bin/python -c "import torchvision; torchvision.models.resnet18(weights='IMAGENET1K_V1')"
+                                 # ACT backbone weights (~45 MB), else downloaded on the first training run
 ```
 
 MuJoCo is pinned to `mujoco==3.15.0` in `pyproject.toml`. Keep it pinned: MJCF attributes and
@@ -67,8 +69,9 @@ Defaults: 30,000 steps, batch 8, a checkpoint every 5,000 steps (~0.6 GB each), 
 2 s (20 steps at 10 Hz), mixed precision on NVIDIA GPUs. Ctrl+C stops it; `--resume` continues from
 the last checkpoint, and `--resume --steps N` trains longer.
 
-Measured on an RTX 5060 Ti at 320x240 x 2 cameras: ~22 steps/s (30,000 steps in ~25 min), 1.3 GB GPU
-memory. CPU training is about 25x slower, so train on a GPU machine.
+Measured on an RTX 5060 Ti at 320x240 x 2 cameras: ~21 steps/s (30,000 steps in ~23 min), 1.3 GB GPU
+memory. CPU training is about 20x slower (0.9 s per step on a Ryzen 7 9700X, ~7.5 h for 30,000 steps), so
+train on a GPU machine.
 
 ## Evaluation
 

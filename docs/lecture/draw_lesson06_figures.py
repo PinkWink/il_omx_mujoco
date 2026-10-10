@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from figstyle import BLUE, GREY, INK, OUT, RED, C, arrow, chain, fig_ax, image, label, note, rbox, save  # noqa: E402
+from figstyle import grid2x2, BLUE, GREY, INK, OUT, RED, C, arrow, chain, fig_ax, image, label, note, rbox, save  # noqa: E402
 from render_terminal import render  # noqa: E402
 
 
@@ -67,13 +67,9 @@ def frame():
 
 
 def sequence():
-    fig, ax = fig_ax(16, 4.1)
-    for i, (n, t) in enumerate([("rec", "REC 4.4 s"), ("ok", "성공 → REC OK"), ("saved", "SAVED episode 1"),
-                                ("done", "3 / 3 → DONE")]):
-        x = 0.3 + i * 3.9
-        hh = image(ax, OUT / f"l06_view_{n}.png", x, 0.3, 3.7)
-        note(ax, x + 1.85, 0.3 + hh + 0.25, t, ha="center", fs=10.5, bold=True, color=INK)
-    save(fig, "l06_sequence.png")
+    grid2x2([(OUT / f"l06_view_{n}.png", t) for n, t in
+             [("rec", "REC 4.4 s"), ("ok", "성공 → REC OK"), ("saved", "SAVED episode 1"), ("done", "3 / 3 → DONE")]],
+            "l06_sequence.png", crop_right=2020)
 
 
 def layout():
@@ -139,8 +135,11 @@ def terminals():
            "l06_t_record.png", highlight=("saved (success)",))
     lines = (OUT / "l06_inspect.txt").read_text().splitlines()
     lines = [s for s in lines if not s.startswith("saved ")]
-    render([("prompt", ".venv/bin/python docs/lecture/inspect_dataset.py lecture_record")] + [("out", s) for s in lines],
-           "l06_t_inspect.png", highlight=("episode lengths", "size on disk"))
+    cut = lines.index("ds[0] (episode 0, frame 0):")
+    render([("prompt", ".venv/bin/python docs/lecture/inspect_dataset.py lecture_record")]
+           + [("out", s) for s in lines[:cut] if s.strip()] + [("out", "...")], "l06_t_inspect_meta.png")
+    render([("out", "...")] + [("out", s) for s in lines[cut:] if s.strip()],
+           "l06_t_inspect_frame.png", highlight=("episode lengths", "size on disk"))
     render([("prompt", "du -sh data/lecture_record data/omx_cube_fixed5 data/omx_cube_random50"),
             ("out", "1.9M\tdata/lecture_record"), ("out", "2.8M\tdata/omx_cube_fixed5"), ("out", "28M\tdata/omx_cube_random50")],
            "l06_t_size.png")

@@ -117,3 +117,28 @@ def save(fig, name):
     fig.savefig(OUT / name, bbox_inches="tight", facecolor="white")
     plt.close(fig)
     print("saved", name)
+
+
+def grid2x2(items, name, crop_right=None):
+    """Four screenshots in a 2 x 2 grid with a title above each. items: (png path, title).
+    crop_right: keep only this many pixels from the left (drops the viewer's UI panel)."""
+    from PIL import Image
+    tmp = []
+    for path, _ in items:
+        im = Image.open(path)
+        if crop_right:
+            im = im.crop((0, 0, min(crop_right, im.width), im.height))
+        p = OUT / f".tmp_{Path(path).name}"
+        im.save(p)
+        tmp.append(p)
+    w = 7.6
+    h = w * Image.open(tmp[0]).height / Image.open(tmp[0]).width
+    fig, ax = fig_ax(16, 2 * (h + 0.65) + 0.1)
+    for k, (p, (_, title)) in enumerate(zip(tmp, items)):
+        r, c = divmod(k, 2)
+        x, y = 0.3 + c * (w + 0.2), 0.1 + (1 - r) * (h + 0.65)
+        image(ax, p, x, y, w)
+        note(ax, x + w / 2, y + h + 0.3, title, ha="center", fs=12, bold=True, color=INK)
+    save(fig, name)
+    for p in tmp:
+        p.unlink()

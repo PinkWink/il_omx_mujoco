@@ -49,14 +49,20 @@ cd ~/il_omx_mujoco
 ### 터미널 1: inspect_dataset.py
 
 ```bash
-.venv/bin/python docs/lecture/inspect_dataset.py lecture_record
+.venv/bin/python docs/lecture/inspect_dataset.py my_fixed5          # data/ 아래 데이터셋 이름
 ```
 
-### 실행 결과: inspect_dataset.py
+- 아래 결과는 이 페이지에서 가짜 리더로 녹화한 `lecture_record` (3 에피소드) 를 연 것입니다.
 
-![LeRobotDataset 으로 열어 본 결과](l06_t_inspect.png){width=1000}
+### 실행 결과: 메타 정보와 features
 
-- 저장할 때는 320×240×3 (uint8) 영상이지만, 꺼낼 때는 학습용 텐서 (3, 240, 320), 0~1 float 으로 나옵니다.
+![inspect_dataset.py 출력 (앞부분)](l06_t_inspect_meta.png){width=1000}
+
+### 실행 결과: 첫 프레임과 에피소드 길이
+
+![inspect_dataset.py 출력 (뒷부분)](l06_t_inspect_frame.png){width=1000}
+
+- 저장할 때는 240×320×3 (높이×너비×색, uint8) 영상이지만, 꺼낼 때는 학습용 텐서 (3, 240, 320), 0~1 float 으로 나옵니다.
 - 첫 프레임의 state 와 action 이 같습니다. 녹화는 팔이 리더 자세에서 시작하기 때문입니다.
 
 ### 한 에피소드의 관절 궤적

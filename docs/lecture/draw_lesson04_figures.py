@@ -23,7 +23,7 @@ def hardware():
     rbox(ax, 6.1, 0.6, 3.6, 3.4, "USB", ["/dev/ttyACM0", "dialout 그룹 권한 (②)"], fc=C["grey"], align="left", dy=0.5)
     arrow(ax, (9.7, 2.3), (10.5, 2.3))
     rbox(ax, 10.5, 0.6, 5.2, 3.4, "PC: LeRobot OmxLeader", ["connect(): 설정 쓰기 (2절)", "get_action(): 6개 위치 읽기",
-                                                          "읽기 1회 약 1.5 ms (실측)"], fc=C["purple"], align="left", dy=0.5)
+                                                          "읽기 1회 1.4 ~ 1.6 ms (실측)"], fc=C["purple"], align="left", dy=0.5)
     save(fig, "l04_hardware.png")
 
 

@@ -16,7 +16,7 @@
 ![ACT 의 입력 · 출력](l07_arch.png){width=1000}
 
 - 학습 때는 CVAE 인코더가 시연 행동을 보고 잠재 변수 z 를 만들어, 같은 상황에서 시연이 조금씩 다른 것을 흡수합니다. 평가 때는 z = 0 을 씁니다.
-- 그래서 같은 관측이면 항상 같은 행동이 나옵니다. 큐브 자리를 고정한 평가는 몇 번을 해도 결과가 같습니다 (⑧).
+- 그래서 같은 관측이면 거의 같은 행동이 나옵니다. 큐브 자리를 고정한 10번 평가에서 성공 · 실패는 매번 같았고, 걸린 시간은 0.1 s 정도만 달랐습니다 (⑧ ⑨).
 
 ### 이 저장소의 학습 설정
 
@@ -33,6 +33,7 @@ cd ~/il_omx_mujoco
 ```
 
 - 데이터셋에 에피소드가 5개 미만이면 시작하지 않습니다.
+- 첫 학습 때 ACT 의 영상 백본(ResNet18) 가중치 47 MB 를 인터넷에서 받습니다. 인터넷이 없는 PC 는 ② 의 ⑥ 단계로 미리 받아 둡니다.
 - 같은 이름의 학습 폴더가 있으면 시작하지 않습니다. 이어서 하려면 `--resume`, 새로 하려면 `--name` 으로 다른 이름을 줍니다.
 
 ### 실행 결과: 학습 (300 스텝 짧게 실행)
@@ -67,7 +68,8 @@ cd ~/il_omx_mujoco
 
 ![30,000 스텝 학습 시간](l07_gpu_cpu.png){width=1000}
 
-- GPU 가 없는 PC 에서는 학습이 현실적으로 어렵습니다. GPU 가 있는 PC 에서 학습하고, `outputs/train/<run>` 폴더를 복사해 평가합니다.
+- CPU 는 8코어 데스크톱(Ryzen 7 9700X)에서도 스텝당 0.9 s, 30,000 스텝에 약 7.5 시간입니다 (GPU 의 약 20배). 노트북 CPU 는 더 느립니다.
+- GPU 가 있는 PC 에서 학습하고, `outputs/train/<run>` 폴더를 복사해 평가하는 방법을 권합니다. 평가(추론)는 CPU 로도 됩니다 (`--device cpu`).
 
 ## 3. 코드와 설정
 
@@ -98,7 +100,7 @@ common = [f"--steps={args.steps}",                  # 30000
           f"--num_workers={args.num_workers}",
           f"--policy.device={device}",
           f"--policy.use_amp={str(device == 'cuda').lower()}"]
-env = dict(os.environ, SVT_LOG="1", HF_HUB_OFFLINE="1")   # 인터넷(Hub) 을 쓰지 않음
+env = dict(os.environ, SVT_LOG="1", HF_HUB_OFFLINE="1")   # Hugging Face Hub 을 쓰지 않음
 subprocess.run(cmd, env=env, cwd=ROOT)
 ```
 
@@ -119,6 +121,6 @@ def act(obs: dict) -> np.ndarray:
 
 ### 해 볼 것
 
-- `--steps 5000` 으로 짧게 학습하고 `--resume --steps 10000` 으로 이어서 학습해 보기
-- `--chunk-s 1` (10 스텝) 로 학습한 정책을 ⑨ 의 방법으로 평가해 2 s 와 비교
+- `--name short_act --steps 5000` 으로 짧게 학습하고 `--resume --name short_act --steps 10000` 으로 이어서 학습해 보기 (같은 데이터셋으로 다시 학습할 때는 `--name` 으로 다른 이름이 필요)
+- `--chunk-s 1 --name my_random50_chunk1` (10 스텝) 로 학습한 정책을 `eval.py --run my_random50_chunk1` 로 평가해 2 s 와 비교
 - 학습 중 다른 터미널에서 `nvidia-smi` 로 GPU 메모리 · 사용률 확인

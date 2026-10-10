@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from figstyle import BLUE, GREEN, INK, OUT, RED, C, arrow, chain, fig_ax, image, note, rbox, save  # noqa: E402
+from figstyle import grid2x2, BLUE, GREEN, INK, OUT, RED, C, arrow, chain, fig_ax, image, note, rbox, save  # noqa: E402
 from render_terminal import render  # noqa: E402
 
 ROOT = OUT.parents[1]
@@ -98,13 +98,8 @@ def interp():
 
 
 def video_frames():
-    """Frames 0/25/45/80 of outputs/lecture/scripted5.mp4, extracted with the venv (imageio) to l10_video_*.png."""
-    fig, ax = fig_ax(16, 2.6)
-    for k, i in enumerate((0, 25, 45, 80)):
-        x = 0.3 + k * 3.9
-        image(ax, OUT / f"l10_video_{i:03d}.png", x, 0.3, 3.7)
-        note(ax, x + 0.1, 0.5, f"t = {i / 10:.1f} s", fs=9, color="white")
-    save(fig, "l10_video.png")
+    """Frames 0/25/45/80 of outputs/lecture/scripted5.mp4 (global | wrist), extracted with the venv to l10_video_*.png."""
+    grid2x2([(OUT / f"l10_video_{i:03d}.png", f"t = {i / 10:.1f} s") for i in (0, 25, 45, 80)], "l10_video.png")
 
 
 def terminals():

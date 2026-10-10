@@ -35,7 +35,7 @@
 
 ```bash
 cd ~/il_omx_mujoco
-.venv/bin/python scripts/scripted_pick_place.py --episodes 5 --video outputs/scripted5.mp4
+.venv/bin/python scripts/scripted_pick_place.py --episodes 5 --video outputs/lecture/scripted5.mp4
 ```
 
 ### 실행 결과: 5회
@@ -57,10 +57,10 @@ cd ~/il_omx_mujoco
 
 ### 실행 결과: 50회 수집
 
-![50회 수집 출력 (일부)](l09_t_collect.png){width=1000}
+![50회 수집 출력 (일부, 이 강의의 데이터셋 이름 omx_cube_random50 로 실행)](l09_t_collect.png){width=1000}
 
 - 성공한 에피소드만 저장합니다 (record.py 와 같은 형식 · 같은 10 Hz · 같은 카메라). 50 / 50 성공, 에피소드마다 77 프레임 (7.7 s).
-- 에피소드 i 는 seed i 의 큐브 자리를 씁니다. 평가는 seed 1000 부터라 학습에 쓴 자리와 겹치지 않습니다.
+- 에피소드 i 는 seed i 의 큐브 자리를 씁니다. 평가는 seed 1000 부터라 스크립트 시연의 자리와 겹치지 않습니다. (record.py 의 사람 녹화는 seed 없이 무작위)
 
 ## 3. 코드
 

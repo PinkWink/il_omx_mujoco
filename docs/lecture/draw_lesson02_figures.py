@@ -16,14 +16,14 @@ def requirements():
                ("NVIDIA GPU", ["학습 · 추론에 필요", "드라이버 580 이상 (CUDA 13 휠)"], C["red"]),
                ("디스크", ["venv 약 6 GB", "학습 1회 약 3.6 GB (체크포인트 6개)"], C["yellow"]),
                ("OMX 리더", ["USB 케이블 · /dev/ttyACM0", "④ 페이지부터 사용"], C["teal"]),
-               ("인터넷", ["pip 다운로드 수 GB", "menagerie 모델 git clone"], C["green"])], 3, h=1.85)
+               ("인터넷 (설치 때)", ["pip 수 GB · menagerie git clone", "ResNet18 가중치 47 MB (⑥)"], C["green"])], 3, h=1.85)
     save(fig, "l02_requirements.png")
 
 
 def install_flow():
     fig, ax = fig_ax(16, 2.9)
     chain(ax, [("① apt", ["python3-venv · git"]), ("② 저장소", ["git clone"]), ("③ venv", ["pip install -e ."]),
-               ("④ menagerie", ["OMX 메시 · 모델"]), ("⑤ dialout", ["시리얼 권한"]), ("⑥ 확인", ["버전 · GPU · 렌더"])],
+               ("④ menagerie", ["OMX 메시 · 모델"]), ("⑤ dialout", ["시리얼 권한"]), ("⑥ 확인", ["가중치 · 버전 · 렌더"])],
           0.5, 1.9, gap=0.3, colors=[C["grey"], C["blue"], C["purple"], C["teal"], C["yellow"], C["green"]],
           tfs=11.5, fs=9.5)
     save(fig, "l02_install_flow.png")
@@ -118,7 +118,7 @@ def troubleshoot():
     rows = [("ensurepip is not available", "python3-venv 없음", "sudo apt install python3-venv"),
             ("Error opening file '.../models/follower_01_base.stl'", "menagerie를 받지 않음", "④ git clone 실행"),
             ("[Errno 13] Permission denied: '/dev/ttyACM0'", "dialout 그룹이 아님", "⑤ usermod 후 로그아웃 · 로그인"),
-            ("WARNING: no GPU found. On CPU a step takes ~5 s", "GPU · 드라이버 없음", "nvidia-smi 확인, GPU PC에서 학습")]
+            ("WARNING: no GPU found. On CPU a step takes ~1 s or more", "GPU · 드라이버 없음", "nvidia-smi 확인, GPU PC에서 학습")]
     x = [0.3, 7.6, 11.0]; w = [7.1, 3.2, 4.7]
     for j, t in enumerate(["증상 (메시지)", "원인", "해결"]):
         rbox(ax, x[j], 3.75, w[j], 0.6, t, fc=[C["grey"], C["yellow"], C["green"]][j], tfs=11)

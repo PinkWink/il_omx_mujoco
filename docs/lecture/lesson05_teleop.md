@@ -104,7 +104,8 @@ while viewer is None or viewer.is_running():
         ...
         sim_time = env.data.time
         episodes.update(env.is_success())             # 성공 순간의 시간을 기억 (배너)
-    overlay.set_cameras({cam: obs[cam] for cam in CAMERA_NAMES})
+    if render:                                        # --camera-fps 에 맞춰 카메라 영상이 있을 때만
+        overlay.set_cameras({cam: obs[cam] for cam in CAMERA_NAMES})
     overlay.set_banner(episodes.banner())
     overlay.flush()
     viewer.sync()

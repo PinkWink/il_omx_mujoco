@@ -81,8 +81,8 @@ def settings():
     tiles(ax, [("chunk 20 스텝", ["--chunk-s 2 × 10 fps", "LeRobot 기본 100 은 10 Hz 에서 10 s"], C["purple"]),
                ("batch 8 · lr 1e-5", ["LeRobot ACT 기본 학습률", "GPU 메모리 1.3 GB"], C["grey"]),
                ("30,000 스텝", ["5,000 스텝마다 체크포인트", "Ctrl+C → --resume 으로 이어서"], C["yellow"]),
-               ("AMP (GPU)", ["혼합 정밀도, 약 25% 빠름", "CPU 에서는 끔"], C["blue"]),
-               ("오프라인", ["HF_HUB_OFFLINE=1", "data/ 의 로컬 데이터셋만"], C["teal"]),
+               ("AMP (GPU)", ["혼합 정밀도 (float16 계산)", "CPU 에서는 끔"], C["blue"]),
+               ("Hub 없이", ["HF_HUB_OFFLINE=1 · data/ 의 로컬 데이터", "첫 학습 때 ResNet18 가중치 47 MB 받음"], C["teal"]),
                ("실측 속도", ["RTX 5060 Ti: 약 21 스텝/s", "30,000 스텝 약 23 분"], C["green"])], 3, h=1.8)
     save(fig, "l07_settings.png")
 
@@ -129,15 +129,15 @@ def checkpoints():
 
 def gpu_cpu():
     fig, ax = plt.subplots(figsize=(12, 3.6), dpi=150)
-    vals = [("GPU (RTX 5060 Ti, 실측)", 23 / 60, BLUE), ("CPU (Ryzen 7 9700X, 스텝당 약 5 s)", 30000 * 5 / 3600, RED)]
+    vals = [("GPU (RTX 5060 Ti, 30,000 스텝 실측)", 23 / 60, BLUE), ("CPU (Ryzen 7 9700X, 스텝당 0.9 s 실측)", 30000 * 0.9 / 3600, RED)]
     for i, (n, h, c) in enumerate(vals):
         ax.barh(i, h, color=c, height=0.5)
-        ax.text(h + 0.6, i, f"{h:.1f} 시간" if h > 1 else f"{h * 60:.0f} 분", va="center", fontsize=11, fontweight="bold")
+        ax.text(h + 0.12, i, f"{h:.1f} 시간" if h > 1 else f"{h * 60:.0f} 분", va="center", fontsize=11, fontweight="bold")
     ax.set_yticks(range(2), [v[0] for v in vals], fontsize=10.5); ax.invert_yaxis()
-    ax.set_xlabel("30,000 스텝 학습 시간 (시간)", fontsize=10.5); ax.set_xlim(0, 48)
+    ax.set_xlabel("30,000 스텝 학습 시간 (시간)", fontsize=10.5); ax.set_xlim(0, 9)
     for sp in ("top", "right"):
         ax.spines[sp].set_visible(False)
-    ax.set_title("GPU 와 CPU 학습 시간 비교 (CPU 값은 짧게 재 본 스텝 시간으로 환산)", fontsize=11.5)
+    ax.set_title("GPU 와 CPU 학습 시간 비교 (CPU 는 40 스텝을 재서 30,000 스텝으로 환산)", fontsize=11.5)
     fig.savefig(OUT / "l07_gpu_cpu.png", bbox_inches="tight", facecolor="white"); plt.close(fig)
     print("saved l07_gpu_cpu.png")
 

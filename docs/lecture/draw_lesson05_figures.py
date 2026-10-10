@@ -8,7 +8,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from figstyle import BLUE, GREEN, INK, OUT, RED, C, arrow, chain, fig_ax, image, label, note, rbox, save  # noqa: E402
+from figstyle import grid2x2, BLUE, GREEN, INK, OUT, RED, C, arrow, chain, fig_ax, image, label, note, rbox, save  # noqa: E402
 from render_terminal import render  # noqa: E402
 
 
@@ -62,13 +62,9 @@ def view_direction():
 
 
 def sequence():
-    fig, ax = fig_ax(16, 4.1)
-    names = [("start", "시작 (리더 정지)"), ("grasp", "잡기"), ("carry", "옮기기"), ("success", "놓기 → SUCCESS")]
-    for i, (n, t) in enumerate(names):
-        x = 0.3 + i * 3.9
-        hh = image(ax, OUT / f"l05_view_{n}.png", x, 0.3, 3.7)
-        note(ax, x + 1.85, 0.3 + hh + 0.25, t, ha="center", fs=10.5, bold=True, color=INK)
-    save(fig, "l05_sequence.png")
+    grid2x2([(OUT / f"l05_view_{n}.png", t) for n, t in
+             [("start", "시작 (리더 정지)"), ("grasp", "잡기"), ("carry", "옮기기"), ("success", "놓기 → SUCCESS")]],
+            "l05_sequence.png", crop_right=2020)
 
 
 def keys():

@@ -1,4 +1,7 @@
-"""Train an ACT policy on a recorded dataset (data/<dataset>) with LeRobot, fully offline.
+"""Train an ACT policy on a recorded dataset (data/<dataset>) with LeRobot, without the Hugging Face Hub.
+
+The first run downloads the ResNet18 ImageNet weights (~45 MB, torchvision cache in ~/.cache/torch/hub);
+after that no internet is needed.
 
   python scripts/train.py [--dataset omx_cube_to_tray] [--steps 30000] [--batch-size 8]
   python scripts/train.py --resume            # continue an interrupted run (Ctrl+C is fine)
@@ -6,7 +9,7 @@
 
 Output: outputs/train/<dataset>_act/checkpoints/<step>/pretrained_model (a checkpoint every
 --save-freq steps; checkpoints/last points at the newest). Progress, loss and the remaining time
-are printed by LeRobot. A GPU is strongly recommended: on CPU training is 25x slower.
+are printed by LeRobot. A GPU is strongly recommended: on CPU training is about 20x slower.
 """
 import argparse
 import json
@@ -99,8 +102,9 @@ def main():
 
     print(f"run: {run_dir}  device: {device}")
     if device == "cpu":
-        print(f"WARNING: no GPU found. On CPU a step takes ~5 s, so {args.steps} steps take about "
-              f"{args.steps * 5 / 3600:.0f} h. Train on a PC with an NVIDIA GPU if you can.")
+        # Measured ~0.9 s per step on an 8-core desktop CPU (Ryzen 7 9700X); laptops are slower.
+        print(f"WARNING: no GPU found. On CPU a step takes ~1 s or more, so {args.steps} steps take at least "
+              f"{args.steps * 0.9 / 3600:.0f} h. Train on a PC with an NVIDIA GPU if you can.")
 
     env = dict(os.environ, SVT_LOG="1", HF_HUB_OFFLINE="1")  # quiet video encoder, never touch the Hub
     try:

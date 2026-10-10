@@ -212,7 +212,7 @@ def stack():
     fig, ax = fig_ax(16, 4.6)
     tiles(ax, [("MuJoCo 3.15.0", ["물리 시뮬레이션 · 뷰어", "오프스크린 카메라 렌더 (EGL)"], C["blue"]),
                ("LeRobot 0.6.1", ["LeRobotDataset · ACT 정책", "OMX 리더 드라이버 (Dynamixel)"], C["purple"]),
-               ("PyTorch + CUDA", ["ACT 학습 · 추론", "GPU 필수 (CPU는 약 25배 느림)"], C["red"]),
+               ("PyTorch + CUDA", ["ACT 학습 · 추론", "GPU 필수 (CPU는 약 20배 느림)"], C["red"]),
                ("ROBOTIS OMX", ["리더 팔 (실물)", "menagerie MJCF 모델"], C["yellow"]),
                ("Python venv", ["의존성은 pyproject.toml", "mujoco==3.15.0 고정"], C["grey"]),
                ("검증 환경", ["Ubuntu 24.04 · Python 3.12", "RTX 5060 Ti 16 GB"], C["green"])], 3, h=1.85)

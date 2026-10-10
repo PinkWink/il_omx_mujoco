@@ -90,6 +90,14 @@ nvidia-smi --query-gpu=name,driver_version,memory.total --format=csv
 
 - `cuda True` 가 나와야 GPU로 학습할 수 있습니다. `False` 이거나 오류가 나면 NVIDIA 드라이버부터 확인합니다.
 
+### ⑥ 학습용 가중치 미리 받기
+
+```bash
+.venv/bin/python -c "import torchvision; torchvision.models.resnet18(weights='IMAGENET1K_V1')"
+```
+
+- ACT 의 영상 백본(ResNet18) ImageNet 가중치 47 MB 를 `~/.cache/torch/hub` 에 받아 둡니다. 받지 않으면 첫 학습(⑦) 때 받으므로, 그때 인터넷이 없으면 학습이 시작되지 않습니다.
+
 ### ⑥ 설치 확인: 카메라 렌더
 
 ```bash
