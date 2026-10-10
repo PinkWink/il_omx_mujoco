@@ -18,6 +18,7 @@ FIELDS = {
     "Firmware_Version": (6, 1),
     "ID": (7, 1),
     "Baud_Rate": (8, 1),
+    "Return_Delay_Time": (9, 1),
     "Drive_Mode": (10, 1),
     "Operating_Mode": (11, 1),
     "Homing_Offset": (20, 4),
