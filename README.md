@@ -127,7 +127,7 @@ and 18% on random poses; 50 varied demos (`omx_cube_random50`) gave 100% and 98%
 |---|---|
 | `models/omx_follower.xml` | ROBOTIS menagerie OMX, plus box finger pads (the curved finger meshes become fat convex hulls), a wrist camera and a `tcp` site |
 | `models/scene_cube.xml` | Table, cube, tray, global camera, `home` keyframe |
-| `il_omx/env.py` | `OmxCubeEnv`: `reset()` randomizes the cube, `step(action)` at 30 Hz, camera images, `is_success()` |
+| `il_omx/env.py` | `OmxCubeEnv`: `reset()` randomizes the cube, `step(action)` advances one control period (10 Hz), camera images, `is_success()` |
 | `il_omx/leader.py` | `connect_leader()` using `calibration/omx_leader.json` |
 | `il_omx/leader_mapping.py` | `LeaderToSim`: leader reading -> 6 sim joint targets (rad), from `configs/leader_to_sim.json` |
 | `il_omx/ik.py` | Damped least-squares IK for the scripted demo |

@@ -1,0 +1,17 @@
+physics dt 0.002 s x 50 substeps = control 0.1 s (10 Hz)
+joints: ['Joint1', 'Joint2', 'Joint3', 'Joint4', 'Joint5', 'Gripper']
+ctrl range (deg): [-270. -120. -120. -100. -270.    0.] ~ [360.  90.  90. 100. 270. 100.]
+
+reset(cube_pose=FIXED_CUBE_POSE)
+  obs['state']: shape (6,), dtype float64
+  obs['global']: shape (240, 320, 3), dtype uint8
+  obs['wrist']: shape (240, 320, 3), dtype uint8
+  state (rad): [ 0.  -0.3  0.1  1.3  0.   0.8]
+  cube position (m): [ 0.21  -0.06   0.015]  success: False
+
+step() x 10 with Joint1 +30 deg
+  state (deg): [ 29.9 -17.    5.9  74.5   0.   45.8]  sim time 1.0 s
+
+cube placed at tray center: cube [0.18  0.13  0.017]  success: True
+
+cube placed at tray, 22 mm off center: cube [0.202 0.13  0.017]  success: False
