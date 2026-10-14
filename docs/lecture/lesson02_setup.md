@@ -14,7 +14,7 @@
 
 ```bash
 sudo apt update
-sudo apt install -y python3-venv git
+sudo apt install -y python3-venv git tree
 ```
 
 ### ② 저장소 받기
@@ -97,6 +97,21 @@ nvidia-smi --query-gpu=name,driver_version,memory.total --format=csv
 ```
 
 - ACT 의 영상 백본(ResNet18) ImageNet 가중치 47 MB 를 `~/.cache/torch/hub` 에 받아 둡니다. 받지 않으면 첫 학습(⑦) 때 받으므로, 그때 인터넷이 없으면 학습이 시작되지 않습니다.
+
+### ⑥ 설치 확인: 폴더 구조
+
+```bash
+cd ~/il_omx_mujoco
+ls -a
+tree -L 2 -d
+```
+
+### 실행 결과: 폴더 구조
+
+![ls -a 와 tree -L 2 -d](l02_t_tree.png){width=1000}
+
+- `.venv/` (③), `il_omx.egg-info/` (③), `third_party/robotis_mujoco_menagerie/` (④) 가 보이면 됩니다.
+- `data/`, `outputs/` 는 아직 없습니다. 렌더 · 녹화 · 학습을 하면 생깁니다.
 
 ### ⑥ 설치 확인: 카메라 렌더
 

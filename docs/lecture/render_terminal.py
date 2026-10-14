@@ -40,7 +40,9 @@ def render(lines, name, title=TITLE, highlight=(), prompt=PROMPT):
             ax.text(x1, y, text, va="center", fontsize=9.6, color="#FFFFFF", family=MONO)
         else:
             col = "#FFD75F" if any(h in text for h in highlight) else "#E0E0E0"
-            ax.text(0.35, y, text, va="center", fontsize=9.6, color=col, family=MONO)
+            # NanumGothicCoding draws box-drawing glyphs double-width, so tree output uses DejaVu
+            fam = "DejaVu Sans Mono" if any(ch in text for ch in "├└│─") else MONO
+            ax.text(0.35, y, text, va="center", fontsize=9.6, color=col, family=fam)
         y -= LH
     fig.savefig(OUT / name, bbox_inches="tight", facecolor="white", pad_inches=0.05)
     plt.close(fig)

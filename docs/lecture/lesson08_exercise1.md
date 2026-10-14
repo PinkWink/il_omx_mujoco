@@ -27,10 +27,12 @@ cd ~/il_omx_mujoco
 ### 터미널 1: 학습
 
 ```bash
-.venv/bin/python scripts/train.py --dataset my_fixed5
+.venv/bin/python scripts/train.py --dataset my_fixed5 --steps 5000 --save-freq 1000
 ```
 
-- 30,000 스텝 약 23 분 (RTX 5060 Ti). 5,000 스텝마다 체크포인트가 생기므로, 학습 중에도 다른 터미널에서 중간 체크포인트를 평가할 수 있습니다.
+- 5,000 스텝 약 4 분 (RTX 5060 Ti). 같은 자리 5회짜리 단순한 데이터는 2,000 스텝이면 이미 성공하므로 (3절) 기본값 30,000 스텝까지 갈 필요가 없습니다.
+- `--save-freq 1000`: 1,000 스텝마다 체크포인트가 생깁니다. 학습 중에도 다른 터미널에서 중간 체크포인트를 평가할 수 있습니다.
+- 아래 실행 결과는 30,000 스텝으로 학습한 정책입니다. 3절 곡선처럼 5,000 스텝에서도 추론 A 100%, 추론 B 15 ~ 25% 로 같습니다.
 
 ### 터미널 2: 추론 A - 같은 자리
 
@@ -102,5 +104,5 @@ cd ~/il_omx_mujoco
 ### 해 볼 것
 
 - 추론 A 를 `--cube-pose 0.22 -0.06 0` (1 cm 옆), `0.23 -0.06 0` (2 cm), `0.24 -0.06 0` (3 cm) 로 바꿔 가며 어디서 무너지는지 직접 찾기
-- `--policy outputs/train/my_fixed5_act/checkpoints/005000/pretrained_model` 처럼 중간 체크포인트를 평가해 곡선 그려 보기
+- `--policy outputs/train/my_fixed5_act/checkpoints/002000/pretrained_model` 처럼 중간 체크포인트(001000 ~ 005000)를 평가해 곡선 그려 보기
 - 사람이 녹화한 시연 5회와 스크립트 시연 5회의 결과 비교 (사람 시연은 매번 조금씩 다름)
