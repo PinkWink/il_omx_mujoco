@@ -10,6 +10,8 @@ from pathlib import Path
 
 from dynamixel_sdk import COMM_SUCCESS, PacketHandler, PortHandler
 
+from il_omx.leader import DEFAULT_PORT
+
 ROOT = Path(__file__).resolve().parents[1]
 
 # XL330 control table: name -> (address, size in bytes)
@@ -40,7 +42,7 @@ def read(packet, port, dxl_id, addr, size):
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument("--port", default="/dev/ttyACM0")
+    p.add_argument("--port", default=DEFAULT_PORT)
     p.add_argument("--baudrate", type=int, default=1_000_000)
     p.add_argument("--ids", type=int, nargs="+", default=[1, 2, 3, 4, 5, 6])
     args = p.parse_args()

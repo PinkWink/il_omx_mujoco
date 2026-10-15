@@ -2,7 +2,7 @@
 
 Prints LeRobot's normalized values (arm -100..100, gripper 0..100). Arm joints also show degrees.
 
-  python scripts/leader_read.py [--port /dev/ttyACM0] [--hz 10]
+  python scripts/leader_read.py [--port /dev/omx_leader] [--hz 10]
 """
 import argparse
 import sys

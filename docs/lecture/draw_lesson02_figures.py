@@ -15,7 +15,7 @@ def requirements():
                ("Python", ["3.10 이상 (검증 3.12)", "venv 하나에 모두 설치"], C["grey"]),
                ("NVIDIA GPU", ["학습 · 추론에 필요", "드라이버 580 이상 (CUDA 13 휠)"], C["red"]),
                ("디스크", ["venv 약 6 GB", "학습 1회 약 3.6 GB (체크포인트 6개)"], C["yellow"]),
-               ("OMX 리더", ["USB 케이블 · /dev/ttyACM0", "④ 페이지부터 사용"], C["teal"]),
+               ("OMX 리더", ["USB 케이블 · /dev/omx_leader (⑤ udev)", "④ 페이지부터 사용"], C["teal"]),
                ("인터넷 (설치 때)", ["pip 수 GB · menagerie git clone", "ResNet18 가중치 47 MB (⑥)"], C["green"])], 3, h=1.85)
     save(fig, "l02_requirements.png")
 
@@ -23,7 +23,7 @@ def requirements():
 def install_flow():
     fig, ax = fig_ax(16, 2.9)
     chain(ax, [("① apt", ["python3-venv · git"]), ("② 저장소", ["git clone"]), ("③ venv", ["pip install -e ."]),
-               ("④ menagerie", ["OMX 메시 · 모델"]), ("⑤ dialout", ["시리얼 권한"]), ("⑥ 확인", ["가중치 · 버전 · 렌더"])],
+               ("④ menagerie", ["OMX 메시 · 모델"]), ("⑤ 시리얼", ["dialout · udev"]), ("⑥ 확인", ["가중치 · 버전 · 렌더"])],
           0.5, 1.9, gap=0.3, colors=[C["grey"], C["blue"], C["purple"], C["teal"], C["yellow"], C["green"]],
           tfs=11.5, fs=9.5)
     save(fig, "l02_install_flow.png")
@@ -114,21 +114,39 @@ def version_pin():
 
 
 def troubleshoot():
-    fig, ax = fig_ax(16, 4.6)
+    fig, ax = fig_ax(16, 5.0)
     rows = [("ensurepip is not available", "python3-venv 없음", "sudo apt install python3-venv"),
             ("Error opening file '.../models/follower_01_base.stl'", "menagerie를 받지 않음", "④ git clone 실행"),
             ("[Errno 13] Permission denied: '/dev/ttyACM0'", "dialout 그룹이 아님", "⑤ usermod 후 로그아웃 · 로그인"),
+            ("ls: cannot access '/dev/omx_leader'", "udev 규칙 시리얼이 비었거나 다름", "⑤ udev (3) 다시 · USB 다시 꽂기"),
             ("WARNING: no GPU found. On CPU a step takes ~1 s or more", "GPU · 드라이버 없음", "nvidia-smi 확인, GPU PC에서 학습")]
     x = [0.3, 7.6, 11.0]; w = [7.1, 3.2, 4.7]
     for j, t in enumerate(["증상 (메시지)", "원인", "해결"]):
-        rbox(ax, x[j], 3.75, w[j], 0.6, t, fc=[C["grey"], C["yellow"], C["green"]][j], tfs=11)
+        rbox(ax, x[j], 4.15, w[j], 0.6, t, fc=[C["grey"], C["yellow"], C["green"]][j], tfs=11)
     for i, r in enumerate(rows):
-        y = 2.95 - i * 0.78
+        y = 3.35 - i * 0.78
         for j, t in enumerate(r):
             rbox(ax, x[j], y, w[j], 0.64, t, fc="white", tfs=9.5 if j == 0 else 10, lw=1.0)
     save(fig, "l02_troubleshoot.png")
 
 
+def udev():
+    fig, ax = fig_ax(16, 5.2)
+    note(ax, 0.3, 4.95, "규칙 없이: 꽂는 순서로 번호가 정해진다", bold=True, color=INK, fs=11)
+    rbox(ax, 0.3, 2.85, 3.6, 1.7, "리더 먼저 꽂음", ["리더 → /dev/ttyACM0", "다른 보드 → /dev/ttyACM1"], fc=C["green"], align="left", dy=0.4)
+    rbox(ax, 4.2, 2.85, 3.6, 1.7, "다른 보드 먼저 꽂음", ["다른 보드 → /dev/ttyACM0", "리더 → /dev/ttyACM1"], fc=C["red"], align="left", dy=0.4)
+    note(ax, 0.3, 2.45, "같은 리더인데 이름이 바뀌어, ttyACM0 를 열면 엉뚱한 장치에 연결된다", fs=9.5)
+    note(ax, 8.4, 4.95, "udev 규칙: 시리얼 번호로 리더를 알아본다", bold=True, color=INK, fs=11)
+    rbox(ax, 8.4, 2.85, 3.4, 1.7, "리더 보드", ["idVendor 2f5d (ROBOTIS)", "serial 2FD8BC… (고유)"], fc=C["yellow"], align="left", dy=0.4)
+    arrow(ax, (11.8, 3.7), (12.4, 3.7))
+    rbox(ax, 12.4, 2.85, 3.3, 1.7, "/dev/omx_leader", ["→ ttyACM0 또는 ttyACM1", "꽂는 순서와 무관"], fc=C["teal"], align="left", dy=0.4)
+    chain(ax, [("(1) 리더만 연결", ["팔로워 USB 뽑기"]), ("(2) udevadm info", ["ID_SERIAL_SHORT 확인"]),
+               ("(3) 규칙 파일", ["99-omx-leader.rules"]), ("(4) 적용 · 확인", ["ls -l /dev/omx_leader"]),
+               ("(5) 스크립트", ["DEFAULT_PORT"])], 0.35, 1.45,
+          colors=[C["red"], C["grey"], C["yellow"], C["teal"], C["purple"]], tfs=11, fs=9.2)
+    save(fig, "l02_udev.png")
+
+
 if __name__ == "__main__":
-    for f in (requirements, install_flow, deps, venv_python, scripts_map, folders, version_pin, troubleshoot):
+    for f in (requirements, install_flow, deps, venv_python, scripts_map, folders, version_pin, troubleshoot, udev):
         f()

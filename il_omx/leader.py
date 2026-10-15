@@ -5,7 +5,8 @@ from lerobot.teleoperators.omx_leader import OmxLeader, OmxLeaderConfig
 
 ROOT = Path(__file__).resolve().parents[1]
 CALIBRATION_DIR = ROOT / "calibration"
-DEFAULT_PORT = "/dev/ttyACM0"
+# /dev/omx_leader comes from the udev rule on page ②; without it, the first USB serial port
+DEFAULT_PORT = "/dev/omx_leader" if Path("/dev/omx_leader").exists() else "/dev/ttyACM0"
 
 
 def connect_leader(port: str = DEFAULT_PORT) -> OmxLeader:

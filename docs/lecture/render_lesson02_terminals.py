@@ -84,3 +84,28 @@ render([("prompt", "ls -a"),
         ("out", ""),
         ("out", "13 directories")],
        "l02_t_tree.png", highlight=("── il_omx.egg-info", "── robotis_mujoco_menagerie"))
+
+render([("prompt", "ls /dev/ttyACM*        # 리더만 연결한 상태"),
+        ("out", "/dev/ttyACM0")],
+       "l02_t_ttyacm.png", highlight=("/dev/ttyACM0",))
+
+render([("prompt", "udevadm info -q all -n /dev/ttyACM0 | egrep 'DEVNAME=|ID_VENDOR=|ID_VENDOR_ID=|ID_MODEL=|ID_SERIAL_SHORT='"),
+        ("out", "E: DEVNAME=/dev/ttyACM0"),
+        ("out", "E: ID_MODEL=OpenRB-150"),
+        ("out", "E: ID_SERIAL_SHORT=2FD8BCE25157375037202020FF122F13"),
+        ("out", "E: ID_VENDOR=ROBOTIS"),
+        ("out", "E: ID_VENDOR_ID=2f5d")],
+       "l02_t_udevinfo.png", highlight=("ID_SERIAL_SHORT", "ID_VENDOR_ID"))
+
+render([("prompt", "cat /etc/udev/rules.d/99-omx-leader.rules"),
+        ("out", 'SUBSYSTEM=="tty", ATTRS{idVendor}=="2f5d", ATTRS{serial}=="2FD8BCE25157375037202020FF122F13", SYMLINK+="omx_leader"'),
+        ("prompt", "sudo udevadm control --reload-rules"),
+        ("prompt", "sudo udevadm trigger"),
+        ("out", "(리더 USB 뽑았다가 다시 꽂기)"),
+        ("prompt", "ls -l /dev/omx_leader"),
+        ("out", "lrwxrwxrwx 1 root root 7 Oct 15 15:11 /dev/omx_leader -> ttyACM0")],
+       "l02_t_udev.png", highlight=("-> ttyACM0",))
+
+render([("prompt", '.venv/bin/python -c "from il_omx.leader import DEFAULT_PORT; print(DEFAULT_PORT)"'),
+        ("out", "/dev/omx_leader")],
+       "l02_t_udevport.png", highlight=("/dev/omx_leader",))

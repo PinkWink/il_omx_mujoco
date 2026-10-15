@@ -20,7 +20,7 @@ def hardware():
                                                    "그리퍼 트리거 6: 모델 1190 (XL330-M077)", "통신 1 Mbps, Protocol 2.0"],
          fc=C["yellow"], align="left", dy=0.5)
     arrow(ax, (5.3, 2.3), (6.1, 2.3))
-    rbox(ax, 6.1, 0.6, 3.6, 3.4, "USB", ["/dev/ttyACM0", "dialout 그룹 권한 (②)"], fc=C["grey"], align="left", dy=0.5)
+    rbox(ax, 6.1, 0.6, 3.6, 3.4, "USB", ["/dev/omx_leader (② udev)", "dialout 그룹 권한 (②)"], fc=C["grey"], align="left", dy=0.5)
     arrow(ax, (9.7, 2.3), (10.5, 2.3))
     rbox(ax, 10.5, 0.6, 5.2, 3.4, "PC: LeRobot OmxLeader", ["connect(): 설정 쓰기 (2절)", "get_action(): 6개 위치 읽기",
                                                           "읽기 1회 1.4 ~ 1.6 ms (실측)"], fc=C["purple"], align="left", dy=0.5)

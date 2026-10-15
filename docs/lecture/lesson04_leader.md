@@ -89,7 +89,7 @@ python3 docs/lecture/compare_backups.py calibration/leader_eeprom_backup_*.json
 from lerobot.teleoperators.omx_leader import OmxLeader, OmxLeaderConfig
 
 CALIBRATION_DIR = ROOT / "calibration"
-DEFAULT_PORT = "/dev/ttyACM0"
+DEFAULT_PORT = "/dev/omx_leader" if Path("/dev/omx_leader").exists() else "/dev/ttyACM0"   # ② udev
 
 def connect_leader(port: str = DEFAULT_PORT) -> OmxLeader:
     """Connect using the project's calibration file (calibration/omx_leader.json)."""

@@ -7,7 +7,7 @@ Press ENTER in the viewer for a new episode (new cube position; the same one wit
 rests in the tray and the gripper has let go. BACKSPACE (the viewer's own simulation reset) also
 starts a new episode, with the arm placed at the leader's pose.
 
-  python scripts/teleop.py [--port /dev/ttyACM0] [--camera-fps 10] [--fixed-cube]
+  python scripts/teleop.py [--port /dev/omx_leader] [--camera-fps 10] [--fixed-cube]
 
 Lower --camera-fps on slow PCs (0 turns the camera views off); control stays at 10 Hz.
 """
