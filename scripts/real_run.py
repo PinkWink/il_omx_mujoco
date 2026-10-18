@@ -67,8 +67,8 @@ def main():
     p.add_argument("--policy", help="a pretrained_model folder (overrides --run)")
     p.add_argument("--follower-port", default=FOLLOWER_PORT)
     p.add_argument("--max-s", type=float, default=30.0, help="stop a run after this many seconds")
-    p.add_argument("--max-step", type=float, default=5.0,
-                   help="largest joint move per command, normalized units (5 = 9 deg)")
+    p.add_argument("--max-step", type=float, default=8.0,
+                   help="largest joint move per command, normalized units (8 = 14.4 deg)")
     p.add_argument("--zoom", type=float, default=2.0, help="window size")
     p.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
     args = p.parse_args()

@@ -7,3 +7,4 @@ third_party/
 data/
 HANDOFF.md
 calibration/*_eeprom_backup_*.json
+docs/lecture/*.mp4

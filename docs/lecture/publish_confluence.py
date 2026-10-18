@@ -2,7 +2,7 @@
 # Usage: set -a; source <token env file>; set +a
 #   new page: python3 docs/lecture/publish_confluence.py <md> "<title>" <parentId> <spaceId> [png...]
 #   update:   python3 docs/lecture/publish_confluence.py <md> "<title>" --update <pageId> [png...]
-# Markdown: ## to #### headings, paragraphs, - / 1. lists, | tables |, ``` code, ![..](png){width=900}, **bold**, `code`,
+# Markdown: ## to #### headings, paragraphs, - / 1. lists, | tables |, ``` code, ![..](png|mp4){width=900}, **bold**, `code`,
 #   :::info|tip|note|warning|panel Title ... ::: panels, :::cards(2|3) ::card Title ... ::: card columns
 import html
 import json
@@ -135,6 +135,10 @@ def md_to_storage(md):
         m = re.match(r"^!\[(?:[^\[\]]|\[[^\]]*\])*\]\(([^)]+)\)(?:\{width=(\d+)\})?", line)  # alt text may contain [..]
         if m:
             name = Path(m.group(1)).name
+            if name.endswith(".mp4"):  # attached video: Confluence multimedia player
+                out.append(f'<ac:structured-macro ac:name="multimedia"><ac:parameter ac:name="width">{m.group(2) or 640}'
+                           f'</ac:parameter><ac:parameter ac:name="name"><ri:attachment ri:filename="{name}"/>'
+                           '</ac:parameter></ac:structured-macro>'); i += 1; continue
             out.append(f'<ac:image ac:width="{m.group(2) or 640}"><ri:attachment ri:filename="{name}"/></ac:image>'); i += 1; continue
         if line.strip():
             para = [line]; i += 1
@@ -146,11 +150,11 @@ def md_to_storage(md):
 
 
 def upload(page_id, path):
-    """Attach a PNG; if one with the same name exists, upload a new version of it."""
+    """Attach a PNG (or MP4); if one with the same name exists, upload a new version of it."""
     p = Path(path)
     boundary = "----claudeboundary"
     data = (f"--{boundary}\r\nContent-Disposition: form-data; name=\"file\"; filename=\"{p.name}\"\r\n"
-            f"Content-Type: image/png\r\n\r\n").encode() + p.read_bytes() + f"\r\n--{boundary}--\r\n".encode()
+            f"Content-Type: {'video/mp4' if p.suffix == '.mp4' else 'image/png'}\r\n\r\n").encode() + p.read_bytes() + f"\r\n--{boundary}--\r\n".encode()
     headers = {"Content-Type": f"multipart/form-data; boundary={boundary}", "X-Atlassian-Token": "nocheck"}
     existing = request("GET", f"{BASE}/wiki/rest/api/content/{page_id}/child/attachment?filename={p.name}")
     if existing.get("results"):
