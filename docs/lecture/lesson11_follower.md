@@ -20,7 +20,7 @@
 | 순서 | 할 일 | 스크립트 |
 |---|---|---|
 | 2 | 팔로워 이름 고정 | `udevadm`, `/etc/udev/rules.d/99-omx-follower.rules` |
-| 3 | 카메라 이름 고정 | `real_cameras.py`, `camera_udev_rule.py` |
+| 3 | 카메라 이름 고정 · fps 맞추기 | `real_cameras.py`, `camera_udev_rule.py` |
 | 4 | 팔로워 설정 백업 | `leader_backup_eeprom.py --name follower` |
 | 5 | 텔레옵과 안전 | `real_teleop.py` |
 
@@ -102,6 +102,7 @@ ls -l /dev/omx_*
 
 - 창에 두 카메라 영상이 `/dev/videoN` 이름과 함께 나옵니다. **그리퍼 손가락이 보이는 쪽이 손목 카메라**입니다.
 - 위 화면에서는 `/dev/video0` 이 손목(Innomaker), `/dev/video2` 가 정면(Lenovo)이었습니다. 번호는 PC마다 다릅니다.
+- 줄 끝의 `30 fps` 는 그 카메라가 기본으로 내는 초당 프레임 수입니다. 30 이 아니면 (4)에서 맞춥니다.
 
 ### (2) 규칙 만들기와 확인
 
@@ -131,6 +132,23 @@ ls -l /dev/cam_*
 
 - 창 왼쪽이 `front`, 오른쪽이 `wrist` 입니다. 이름과 영상이 맞는지 확인합니다.
 - 카메라는 640x480 으로 받아, 녹화할 때 MuJoCo 페이지와 같은 320x240 으로 줄여 씁니다.
+- `cannot run at 30 fps` 가 나오면 (4)로 갑니다.
+
+### (4) 카메라 fps 맞추기 (30 fps 가 안 될 때)
+
+```bash
+.venv/bin/python scripts/real_cameras.py --front-fps 15     # 정면 카메라만 15 fps
+.venv/bin/python scripts/real_cameras.py --front-fps 0      # 카메라 기본값 그대로
+.venv/bin/python scripts/real_cameras.py --wrist-fps 15     # 손목 카메라도 같은 방법
+```
+
+### 실행 결과: fps 맞추기
+
+![카메라가 못 내는 fps 를 요청했을 때와 15 fps 로 연 결과](l11_t_fps.png){width=1000}
+
+- 카메라마다 낼 수 있는 fps 가 다릅니다. 기본값은 두 카메라 모두 30 fps 이고, 카메라가 못 내는 값을 주면 쓸 수 있는 값을 알려 주고 끝납니다.
+- 맞는 값을 찾았으면 **이후 모든 실물 스크립트에 같은 옵션을 붙입니다**: `real_teleop.py`, `real_record.py`, `real_run.py` 에 `--front-fps 15`.
+- 녹화 주기(`real_record.py --fps 30`)는 그대로 둡니다. 카메라가 15 fps 면 같은 영상이 두 프레임씩 들어갈 뿐, 데이터셋은 30 fps 로 만들어집니다. 학습한 정책을 실행할 때도 녹화 때와 같은 `--front-fps` 를 씁니다.
 
 ## 4. 팔로워 설정 백업
 

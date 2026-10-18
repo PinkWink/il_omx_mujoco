@@ -29,7 +29,20 @@ LIMITS_FILE = ROOT / "configs" / "follower_limits.json"
 HIGH_LOAD_PCT, HIGH_LOAD_S = 60.0, 0.5
 
 # Cameras deliver 640x480; frames are shrunk to the dataset size (320x240 like the MuJoCo pages).
+# CAPTURE_FPS is the default camera rate; a camera that cannot run at it takes --front-fps / --wrist-fps
+# (0 = the camera's own rate). The recording rate (--fps) is separate: a slower camera repeats frames.
 CAPTURE_WIDTH, CAPTURE_HEIGHT, CAPTURE_FPS = 640, 480, 30
+
+
+def add_camera_fps_args(parser):
+    """--front-fps and --wrist-fps for every script that opens the cameras."""
+    for name in REAL_CAMERAS:
+        parser.add_argument(f"--{name}-fps", type=float, default=CAPTURE_FPS,
+                            help=f"{name} camera frame rate (0 = the camera's own rate; see real_cameras.py --find)")
+
+
+def camera_fps(args) -> dict:
+    return {name: getattr(args, f"{name}_fps") for name in REAL_CAMERAS}
 
 
 def require_device(path: str, what: str):
@@ -151,19 +164,30 @@ class Cameras:
 
     RETRY_S = 2.0
 
-    def __init__(self, image_width: int = 320, image_height: int = 240, paths: dict = CAMERA_PATHS):
+    def __init__(self, image_width: int = 320, image_height: int = 240, paths: dict = CAMERA_PATHS,
+                 fps: dict | None = None):
+        """fps: {name: frames per second}, CAPTURE_FPS for names not given, 0 = the camera's own rate."""
         self.size = (image_width, image_height)
         self.paths = paths
+        self.fps = {name: (fps or {}).get(name, CAPTURE_FPS) or None for name in paths}
         self.cams = {}
         self.lost = {}  # name -> time of the last (re)connect attempt
         for name, path in paths.items():
             require_device(path, f"{name} camera")
-            self.cams[name] = self._connect(path)
+            try:
+                self.cams[name] = self._connect(name)
+            except RuntimeError as e:
+                if "failed to set fps" not in str(e):
+                    raise
+                close_all(self.close)
+                actual = str(e).split("actual_fps=")[-1].rstrip(").")
+                raise SystemExit(f"The {name} camera ({path}) cannot run at {self.fps[name]:g} fps (it offers "
+                                 f"{actual}). Run again with --{name}-fps {float(actual):g}, or --{name}-fps 0 "
+                                 f"for the camera's own rate.") from None
 
-    @staticmethod
-    def _connect(path: str) -> OpenCVCamera:
-        cam = OpenCVCamera(OpenCVCameraConfig(index_or_path=Path(path), fps=CAPTURE_FPS, width=CAPTURE_WIDTH,
-                                              height=CAPTURE_HEIGHT, fourcc="MJPG"))
+    def _connect(self, name: str) -> OpenCVCamera:
+        cam = OpenCVCamera(OpenCVCameraConfig(index_or_path=Path(self.paths[name]), fps=self.fps[name],
+                                              width=CAPTURE_WIDTH, height=CAPTURE_HEIGHT, fourcc="MJPG"))
         cam.connect()
         return cam
 
@@ -174,7 +198,7 @@ class Cameras:
         if not Path(self.paths[name]).exists():
             return
         try:
-            self.cams[name] = self._connect(self.paths[name])
+            self.cams[name] = self._connect(name)
             del self.lost[name]
             print(f"\n{name} camera reconnected")
         except Exception:  # noqa: BLE001, S110 - still coming back; try again later

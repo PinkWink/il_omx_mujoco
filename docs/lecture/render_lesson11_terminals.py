@@ -31,8 +31,8 @@ render([("prompt", "cat /etc/udev/rules.d/99-omx-follower.rules"),
        "l11_t_udev.png", highlight=("/dev/omx_follower ->", "/dev/omx_leader ->"))
 
 render([("prompt", ".venv/bin/python scripts/real_cameras.py --find"),
-        ("out", "/dev/video0: Innomaker-U20CAM-720P  (USB id 0c45:6367, port pci-0000:0b:00.4-usb-0:1:1.0)"),
-        ("out", "/dev/video2: Lenovo_FHD_Webcam_Audio  (USB id 17ef:4831, port pci-0000:0b:00.4-usb-0:2:1.0)"),
+        ("out", "/dev/video0: Innomaker-U20CAM-720P  (USB id 0c45:6367, port pci-0000:0b:00.4-usb-0:1:1.0, 30 fps)"),
+        ("out", "/dev/video2: Lenovo_FHD_Webcam_Audio  (USB id 17ef:4831, port pci-0000:0b:00.4-usb-0:2:1.0, 30 fps)"),
         ("out", "(창에 두 카메라가 /dev/videoN 이름으로 나옴. 그리퍼 손가락이 보이는 쪽이 손목 카메라)")],
        "l11_t_find.png", highlight=("/dev/video0:", "/dev/video2:"))
 
@@ -52,6 +52,14 @@ render([("prompt", ".venv/bin/python scripts/real_cameras.py"),
         ("out", "front: OpenCVCamera(/dev/cam_front)  640x480 @ 30 fps"),
         ("out", "wrist: OpenCVCamera(/dev/cam_wrist)  640x480 @ 30 fps")],
        "l11_t_cams.png", highlight=("front:", "wrist:"))
+
+render([("prompt", ".venv/bin/python scripts/real_cameras.py --front-fps 7"),
+        ("out", "The front camera (/dev/cam_front) cannot run at 7 fps (it offers 10.0). Run again with "
+                "--front-fps 10, or --front-fps 0 for the camera's own rate."),
+        ("prompt", ".venv/bin/python scripts/real_cameras.py --front-fps 15"),
+        ("out", "front: OpenCVCamera(/dev/cam_front)  640x480 @ 15 fps"),
+        ("out", "wrist: OpenCVCamera(/dev/cam_wrist)  640x480 @ 30 fps")],
+       "l11_t_fps.png", highlight=("cannot run at", "@ 15 fps"))
 
 render([("prompt", ".venv/bin/python scripts/leader_backup_eeprom.py --port /dev/omx_follower \\"),
         ("out", "    --ids 11 12 13 14 15 16 --name follower"),

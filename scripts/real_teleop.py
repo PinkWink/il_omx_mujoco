@@ -8,7 +8,7 @@ An orange HIGH LOAD banner means a joint is pushing hard (against the table, the
 stop): ease off the leader. A red MOTOR ERROR means a servo shut down (red LED on the servo):
 quit, unplug the follower's power and USB, plug both back in and start again.
 
-  python scripts/real_teleop.py [--fps 30] [--zoom 2]
+  python scripts/real_teleop.py [--fps 30] [--zoom 2] [--front-fps 30]
 """
 import argparse
 import csv
@@ -18,7 +18,8 @@ import time
 import numpy as np
 
 from il_omx.leader import DEFAULT_PORT, connect_leader
-from il_omx.real import FOLLOWER_PORT, MOTORS, REAL_CAMERAS, Cameras, Follower, close_all, to_vector
+from il_omx.real import (FOLLOWER_PORT, MOTORS, REAL_CAMERAS, Cameras, Follower, add_camera_fps_args, camera_fps,
+                         close_all, to_vector)
 from il_omx.real_ui import ESCAPE_KEY, GRAY, ORANGE, RED, CameraWindow
 
 
@@ -37,10 +38,11 @@ def main():
     p.add_argument("--fps", type=int, default=30, help="control rate")
     p.add_argument("--start-s", type=float, default=3.0, help="time to glide to the leader's pose at start")
     p.add_argument("--zoom", type=float, default=2.0, help="window size (camera images are 320x240)")
+    add_camera_fps_args(p)
     p.add_argument("--log", help="CSV file: leader, sent target, follower position and arm load every frame")
     args = p.parse_args()
 
-    cams = Cameras()
+    cams = Cameras(fps=camera_fps(args))
     leader = connect_leader(args.port)
     follower = Follower(args.follower_port)
     window = CameraWindow("OMX teleop", REAL_CAMERAS, zoom=args.zoom)

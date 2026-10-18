@@ -28,7 +28,8 @@ os.environ.setdefault("SVT_LOG", "1")  # keep the AV1 encoder's info logs out of
 
 from il_omx.dataset import DATA_DIR, EpisodeRecorder
 from il_omx.leader import DEFAULT_PORT, connect_leader
-from il_omx.real import FOLLOWER_PORT, MOTORS, REAL_CAMERAS, ROBOT_TYPE, Cameras, Follower, close_all, to_vector
+from il_omx.real import (FOLLOWER_PORT, MOTORS, REAL_CAMERAS, ROBOT_TYPE, Cameras, Follower, add_camera_fps_args,
+                         camera_fps, close_all, to_vector)
 from il_omx.real_ui import BACKSPACE_KEY, ENTER_KEYS, ESCAPE_KEY, GRAY, GREEN, ORANGE, RED, CameraWindow
 
 NOTICE_S = 2.0  # how long "SAVED" / "DISCARDED" notices stay on screen
@@ -48,6 +49,7 @@ def main():
     p.add_argument("--max-episode-s", type=float, default=60.0)
     p.add_argument("--start-s", type=float, default=3.0, help="time to glide to the leader's pose at start")
     p.add_argument("--zoom", type=float, default=2.0, help="window size")
+    add_camera_fps_args(p)
     args = p.parse_args()
 
     recorder = EpisodeRecorder(args.dataset, args.fps, args.image_height, args.image_width,
@@ -55,7 +57,7 @@ def main():
                                robot_type=ROBOT_TYPE, task=args.task)
     print(f"dataset: {recorder.root}  ({recorder.num_episodes} episodes already)")
 
-    cams = Cameras(args.image_width, args.image_height)
+    cams = Cameras(args.image_width, args.image_height, fps=camera_fps(args))
     leader = connect_leader(args.port)
     follower = Follower(args.follower_port)
     window = CameraWindow("OMX record", REAL_CAMERAS, args.image_width, args.image_height, args.zoom)

@@ -24,7 +24,7 @@ import pandas as pd
 import torch
 
 from il_omx.dataset import ROOT, TASK
-from il_omx.real import FOLLOWER_PORT, Cameras, Follower, close_all
+from il_omx.real import FOLLOWER_PORT, Cameras, Follower, add_camera_fps_args, camera_fps, close_all
 from il_omx.real_ui import ENTER_KEYS, ESCAPE_KEY, GRAY, GREEN, RED, CameraWindow
 
 TRAIN_DIR = ROOT / "outputs" / "train"
@@ -70,6 +70,7 @@ def main():
     p.add_argument("--max-step", type=float, default=8.0,
                    help="largest joint move per command, normalized units (8 = 14.4 deg)")
     p.add_argument("--zoom", type=float, default=2.0, help="window size")
+    add_camera_fps_args(p)
     p.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
     args = p.parse_args()
 
@@ -81,7 +82,7 @@ def main():
     policy, act = load_policy(path, cameras, args.device)
     print(f"policy: {path}\n{fps} fps, {w}x{h}, cameras {cameras}, device {args.device}")
 
-    cams = Cameras(w, h)
+    cams = Cameras(w, h, fps=camera_fps(args))
     follower = Follower(args.follower_port, max_step=args.max_step)
     window = CameraWindow("OMX policy", cameras, w, h, args.zoom)
     dt = 1.0 / fps

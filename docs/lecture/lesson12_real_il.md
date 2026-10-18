@@ -46,7 +46,8 @@
 
 ```bash
 cd ~/il_omx_mujoco
-.venv/bin/python scripts/real_record.py           # data/real_strawberry_lift 에 10 회
+.venv/bin/python scripts/real_record.py                    # data/real_strawberry_lift 에 10 회
+.venv/bin/python scripts/real_record.py --front-fps 15     # ⑪ (4)에서 정면 카메라 fps 를 바꾼 경우
 ```
 
 | 키 | 녹화 중이 아닐 때 | 녹화 중 |
@@ -144,6 +145,7 @@ cd ~/il_omx_mujoco
 .venv/bin/python scripts/real_run.py --max-step 5   # 한 번에 움직이는 양을 더 줄여 천천히
 ```
 
+- 녹화 때 `--front-fps` 를 썼다면 여기에도 같은 값을 붙입니다 (`real_run.py --front-fps 15`).
 - 리더는 필요 없습니다. 시작하면 팔로워가 시연 10회의 평균 시작 자세로 3초 동안 천천히 갑니다.
 - 딸기를 놓고 ENTER 로 시작, 다시 ENTER 로 멈춥니다. 정책 실행 중에는 팔로워 전원 가까이에 손을 둡니다.
 
