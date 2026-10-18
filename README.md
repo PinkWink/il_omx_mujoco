@@ -44,6 +44,7 @@ MUJOCO_GL=egl .venv/bin/python scripts/render_cameras.py                  # outp
                                                   # record IK demos (new random cube pose each episode)
 .venv/bin/python scripts/leader_backup_eeprom.py  # read-only backup of the leader servo settings
 .venv/bin/python scripts/plot_dataset.py --dataset NAME   # joint trajectories + episode lengths -> outputs/plots/
+.venv/bin/python scripts/plot_training.py --run NAME_act # loss curves + predictions on a demo -> outputs/plots/
 ```
 
 Defaults (`TaskConfig` in `il_omx/env.py`): 10 Hz control and recording, 320x240 camera images.
@@ -69,7 +70,8 @@ Datasets stay in `data/` (git-ignored) and are never uploaded.
 `scripts/train.py` runs LeRobot's ACT training offline on `data/<dataset>` (at least 5 episodes).
 Defaults: 30,000 steps, batch 8, a checkpoint every 5,000 steps (~0.6 GB each), ACT action chunk of
 2 s (20 steps at 10 Hz), mixed precision on NVIDIA GPUs. Ctrl+C stops it; `--resume` continues from
-the last checkpoint, and `--resume --steps N` trains longer.
+the last checkpoint, and `--resume --steps N` trains longer. The output is also saved to
+`outputs/train/logs/<run>.log`, which `scripts/plot_training.py` turns into loss curves.
 
 Measured on an RTX 5060 Ti at 320x240 x 2 cameras: ~21 steps/s (30,000 steps in ~23 min), 1.3 GB GPU
 memory. CPU training is about 20x slower (0.9 s per step on a Ryzen 7 9700X, ~7.5 h for 30,000 steps), so

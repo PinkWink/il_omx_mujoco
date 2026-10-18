@@ -9,7 +9,9 @@ after that no internet is needed.
 
 Output: outputs/train/<dataset>_act/checkpoints/<step>/pretrained_model (a checkpoint every
 --save-freq steps; checkpoints/last points at the newest). Progress, loss and the remaining time
-are printed by LeRobot. A GPU is strongly recommended: on CPU training is about 20x slower.
+are printed by LeRobot and also saved to outputs/train/logs/<run>.log (appended on --resume), which
+scripts/plot_training.py turns into loss curves. A GPU is strongly recommended: on CPU training is
+about 20x slower.
 """
 import argparse
 import json
@@ -22,6 +24,7 @@ import torch
 from il_omx.dataset import DATA_DIR, ROOT
 
 TRAIN_DIR = ROOT / "outputs" / "train"
+LOG_DIR = TRAIN_DIR / "logs"  # not inside the run folder: LeRobot refuses an existing output_dir
 MIN_EPISODES = 5
 
 
@@ -33,6 +36,21 @@ def pick_device(requested: str) -> str:
     if torch.backends.mps.is_available():
         return "mps"
     return "cpu"
+
+
+def run_logged(cmd: list, env: dict, log_path) -> int:
+    """Run cmd, showing its output as usual and appending it to log_path."""
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(log_path, "ab") as log:
+        proc = subprocess.Popen(cmd, env=env, cwd=ROOT, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        try:
+            while chunk := os.read(proc.stdout.fileno(), 4096):  # raw bytes: keeps tqdm's \r updates live
+                sys.stdout.buffer.write(chunk)
+                sys.stdout.flush()
+                log.write(chunk)
+        except KeyboardInterrupt:  # Ctrl+C also reaches LeRobot, which saves nothing more and exits
+            pass
+        return proc.wait()
 
 
 def main():
@@ -107,11 +125,13 @@ def main():
               f"{args.steps * 0.9 / 3600:.0f} h. Train on a PC with an NVIDIA GPU if you can.")
 
     env = dict(os.environ, SVT_LOG="1", HF_HUB_OFFLINE="1")  # quiet video encoder, never touch the Hub
+    log_path = LOG_DIR / f"{run_dir.name}.log"
+    print(f"log: {log_path}")
     try:
-        result = subprocess.run(cmd, env=env, cwd=ROOT)
+        returncode = run_logged(cmd, env, log_path)
     except KeyboardInterrupt:
-        result = None
-    if result is None or result.returncode != 0:
+        returncode = None
+    if returncode != 0:
         if (run_dir / "checkpoints" / "last").exists():
             print("\nstopped. Continue with: python scripts/train.py --resume"
                   + (f" --name {args.name}" if args.name else f" --dataset {args.dataset}"))

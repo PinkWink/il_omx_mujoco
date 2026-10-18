@@ -126,6 +126,7 @@ cd ~/il_omx_mujoco
 
 - RTX 5060 Ti 에서 초당 21.4 스텝, 15분 50초 걸렸습니다. GPU 메모리는 1.4 GB 였습니다.
 - 3062 프레임을 배치 8 로 20000 번 → 시연 전체를 52 번(epoch) 본 셈입니다.
+- 지금의 `train.py` 는 화면 출력을 `outputs/train/logs/<런 이름>.log` 에도 저장합니다 (시작할 때 `log: ...` 줄로 알려 줌). 아래 loss 곡선은 이 로그로 그립니다.
 
 ### loss 곡선
 
@@ -143,6 +144,27 @@ cd ~/il_omx_mujoco
 - 파란 선(각 프레임 chunk 의 첫 행동)이 회색 선(시연)을 잘 따라갑니다. 평균 차이는 J2 1.6, J3 1.3 (약 2 ~ 3°) 정도입니다.
 - 빨간 점선은 0 · 3 · 6 초에 **한 번에** 예측한 60 스텝(2 초)입니다. 앞으로 2 초 동안 할 행동을 한꺼번에 내놓는 것이 ACT 의 action chunking 입니다.
 - 학습에 쓴 시연이라 잘 맞는 것은 당연합니다. 실제 실력은 로봇에서 확인합니다.
+
+### 터미널 1: 내 학습 그래프
+
+```bash
+.venv/bin/python scripts/plot_training.py --run real_strawberry_lift_act --episode 9
+.venv/bin/python scripts/plot_training.py --run real_strawberry_lift_act --checkpoint 005000
+```
+
+- 로봇 없이 학습 결과만으로 위의 두 그래프를 그립니다. `outputs/plots/` 에 저장합니다.
+  - `<런>_loss.png`: loss · L1 · KLD 곡선 (`train.py` 가 남긴 로그에서)
+  - `<런>_pred_ep<N>.png`: 시연 `--episode N` 에 대한 예측 (기본 0번)
+- `--checkpoint 005000` 처럼 중간 체크포인트를 고르면, 학습이 덜 된 모델의 예측이 시연과 얼마나 다른지 비교할 수 있습니다.
+- MuJoCo 런(`my_fixed5_act` 등)도 같은 명령으로 볼 수 있습니다. GPU 가 없으면 CPU 로 돌고, 시연 하나에 수십 초 걸립니다.
+
+### 실행 결과: 내 학습 그래프
+
+![plot_training.py 터미널](l12_t_plot_training.png){width=1000}
+
+![outputs/plots/real_strawberry_lift_act_pred_ep9.png](l12_plot_pred.png){width=1000}
+
+- 터미널의 `mean error per joint` 는 관절별 평균 차이(파란 선과 회색 선)입니다. 학습이 덜 된 체크포인트일수록 커집니다.
 
 ## 5. 실행: 정책
 

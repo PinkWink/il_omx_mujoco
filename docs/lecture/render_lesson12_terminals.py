@@ -63,3 +63,11 @@ render([("prompt", ".venv/bin/pip install matplotlib          # 처음 한 번")
         ("out", "saved /home/pw/il_omx_mujoco/outputs/plots/real_strawberry_lift_joints.png"),
         ("out", "saved /home/pw/il_omx_mujoco/outputs/plots/real_strawberry_lift_lengths.png")],
        "l12_t_plot.png", highlight=("saved",))
+
+render([("prompt", ".venv/bin/python scripts/plot_training.py --run real_strawberry_lift_act --episode 9"),
+        ("out", "loss: 200 log lines, step 100 -> 20000, L1 0.583 -> 0.059"),
+        ("out", "saved /home/pw/il_omx_mujoco/outputs/plots/real_strawberry_lift_act_loss.png"),
+        ("out", "Loading weights from local directory"),
+        ("out", "predictions: episode 9, 270 frames in 4 s on cuda; mean error per joint 0.14 1.58 1.30 1.13 0.18 0.44"),
+        ("out", "saved /home/pw/il_omx_mujoco/outputs/plots/real_strawberry_lift_act_pred_ep9.png")],
+       "l12_t_plot_training.png", highlight=("saved",))
