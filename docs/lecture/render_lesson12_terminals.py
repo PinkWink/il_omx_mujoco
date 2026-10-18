@@ -56,3 +56,10 @@ render([("prompt", ".venv/bin/python scripts/real_run.py --max-step 8"),
         ("out", "run 2: stopped after 9.3 s"),
         ("out", "run 3: stopped after 14.5 s")],
        "l12_t_run.png", highlight=("run 2:", "had to be clamped"))
+
+render([("prompt", ".venv/bin/pip install matplotlib          # 처음 한 번"),
+        ("prompt", ".venv/bin/python scripts/plot_dataset.py --dataset real_strawberry_lift"),
+        ("out", "/home/pw/il_omx_mujoco/data/real_strawberry_lift: 10 episodes, 3062 frames, 30 fps"),
+        ("out", "saved /home/pw/il_omx_mujoco/outputs/plots/real_strawberry_lift_joints.png"),
+        ("out", "saved /home/pw/il_omx_mujoco/outputs/plots/real_strawberry_lift_lengths.png")],
+       "l12_t_plot.png", highlight=("saved",))

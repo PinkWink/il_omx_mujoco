@@ -9,6 +9,7 @@ dependencies = [
     "pillow",
     "imageio[ffmpeg]",
     "lerobot[dynamixel,dataset,training]==0.6.1",
+    "matplotlib",
 ]
 
 [build-system]

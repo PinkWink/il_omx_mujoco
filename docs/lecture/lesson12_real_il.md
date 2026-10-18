@@ -92,10 +92,22 @@ cd ~/il_omx_mujoco
 
 ![시연 10 회의 관절 위치](l12_joints.png){width=1000}
 
-- **J2 · J3**: 모든 시연이 같은 모양입니다. 2 ~ 3 초에 J2 를 세우고 J3 를 펴서 딸기 위로 갑니다. 시작은 모두 J2 소프트 한계 -62 근처입니다.
-- **그리퍼**: 50 (닫힘) → 60 ~ 65 (열림) → 55 (딸기를 쥠). 끝에 55 에서 멈추는 것은 손가락이 딸기에 막혀서입니다.
-- **J1 · J5**: -3 ~ 9 사이로 작게 움직였습니다. 딸기가 늘 정면 가까이에 있었기 때문입니다.
-- 끝 자세(J2 -39 ~ -9)는 시연마다 다릅니다. "들어 올린 높이" 는 일정하게 하지 않았습니다.
+### 터미널 1: 내 데이터셋 그래프
+
+```bash
+.venv/bin/pip install matplotlib                                    # 처음 한 번
+.venv/bin/python scripts/plot_dataset.py --dataset real_strawberry_lift
+.venv/bin/python scripts/plot_dataset.py --dataset real_strawberry_lift --signal action
+```
+
+- 로봇 · 카메라 없이, 녹화한 데이터셋만으로 위와 같은 그래프를 그립니다. `outputs/plots/` 에 `<데이터셋>_joints.png` (관절 궤적) 와 `<데이터셋>_lengths.png` (시연 길이) 를 저장합니다.
+- `--signal action` 은 팔로워 위치 대신 리더가 보낸 목표를 그립니다. MuJoCo 데이터셋(`my_fixed5` 등)도 같은 명령으로 볼 수 있습니다.
+
+### 실행 결과: 내 데이터셋 그래프
+
+![plot_dataset.py 터미널](l12_t_plot.png){width=1000}
+
+![outputs/plots/real_strawberry_lift_joints.png](l12_plot_joints.png){width=1000}
 
 ## 4. 실행: 학습
 

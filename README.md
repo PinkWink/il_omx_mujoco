@@ -43,6 +43,7 @@ MUJOCO_GL=egl .venv/bin/python scripts/render_cameras.py                  # outp
 .venv/bin/python scripts/scripted_pick_place.py --episodes 30 --dataset omx_cube_scripted
                                                   # record IK demos (new random cube pose each episode)
 .venv/bin/python scripts/leader_backup_eeprom.py  # read-only backup of the leader servo settings
+.venv/bin/python scripts/plot_dataset.py --dataset NAME   # joint trajectories + episode lengths -> outputs/plots/
 ```
 
 Defaults (`TaskConfig` in `il_omx/env.py`): 10 Hz control and recording, 320x240 camera images.
