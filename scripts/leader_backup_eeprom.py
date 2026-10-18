@@ -1,4 +1,7 @@
-"""Read-only backup of the OMX leader's servo settings (no writes to the motors).
+"""Read-only backup of an OMX arm's servo settings (no writes to the motors).
+
+  python scripts/leader_backup_eeprom.py                     # leader (IDs 1..6)
+  python scripts/leader_backup_eeprom.py --port /dev/omx_follower --ids 11 12 13 14 15 16 --name follower
 
 Run this once before connecting through LeRobot, which rewrites some EEPROM fields
 (e.g. the gripper Homing_Offset) in configure().
@@ -45,6 +48,7 @@ def main():
     p.add_argument("--port", default=DEFAULT_PORT)
     p.add_argument("--baudrate", type=int, default=1_000_000)
     p.add_argument("--ids", type=int, nargs="+", default=[1, 2, 3, 4, 5, 6])
+    p.add_argument("--name", default="leader", help="file name prefix (follower: --name follower)")
     args = p.parse_args()
 
     port = PortHandler(args.port)
@@ -64,7 +68,7 @@ def main():
         print(dxl_id, entry)
     port.closePort()
 
-    out = ROOT / "calibration" / f"leader_eeprom_backup_{time.strftime('%Y%m%d_%H%M%S')}.json"
+    out = ROOT / "calibration" / f"{args.name}_eeprom_backup_{time.strftime('%Y%m%d_%H%M%S')}.json"
     out.write_text(json.dumps(backup, indent=2))
     print("saved", out)
 

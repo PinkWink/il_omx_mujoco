@@ -1,0 +1,4 @@
+{
+  "_comment": "Soft limits for the real follower, in LeRobot's normalized units (1 = 1.8 deg). Commands beyond them are clipped so a joint never keeps pushing into its mechanical stop (that overloads the servo). shoulder_lift: the folded follower stops at about -63.3 while the leader folds to -67.5.",
+  "shoulder_lift": {"min": -62.0}
+}

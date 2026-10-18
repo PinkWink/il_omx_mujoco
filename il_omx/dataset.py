@@ -15,10 +15,11 @@ ROBOT_TYPE = "omx_follower_mujoco"
 IMAGE_WRITER_THREADS_PER_CAMERA = 4
 
 
-def dataset_features(image_height: int, image_width: int) -> dict:
-    joints = {"dtype": "float32", "shape": (len(JOINT_NAMES),), "names": list(JOINT_NAMES)}
+def dataset_features(image_height: int, image_width: int, joint_names=JOINT_NAMES,
+                     cameras=CAMERA_NAMES) -> dict:
+    joints = {"dtype": "float32", "shape": (len(joint_names),), "names": list(joint_names)}
     features = {"observation.state": dict(joints), "action": dict(joints)}
-    for cam in CAMERA_NAMES:
+    for cam in cameras:
         features[f"observation.images.{cam}"] = {
             "dtype": "video",
             "shape": (image_height, image_width, 3),
@@ -28,15 +29,16 @@ def dataset_features(image_height: int, image_width: int) -> dict:
 
 
 def open_dataset(name: str, fps: int, image_height: int, image_width: int,
-                 streaming_encoding: bool = False) -> LeRobotDataset:
+                 streaming_encoding: bool = False, joint_names=JOINT_NAMES, cameras=CAMERA_NAMES,
+                 robot_type: str = ROBOT_TYPE) -> LeRobotDataset:
     """Create data/<name>, or append to it if it already exists (settings must match)."""
     root = DATA_DIR / name
     repo_id = f"local/{name}"
-    threads = IMAGE_WRITER_THREADS_PER_CAMERA * len(CAMERA_NAMES)
-    features = dataset_features(image_height, image_width)
+    threads = IMAGE_WRITER_THREADS_PER_CAMERA * len(cameras)
+    features = dataset_features(image_height, image_width, joint_names, cameras)
     if not (root / "meta" / "info.json").exists():
         return LeRobotDataset.create(
-            repo_id=repo_id, fps=fps, features=features, root=root, robot_type=ROBOT_TYPE,
+            repo_id=repo_id, fps=fps, features=features, root=root, robot_type=robot_type,
             use_videos=True, image_writer_threads=threads, streaming_encoding=streaming_encoding,
         )
 
@@ -46,7 +48,9 @@ def open_dataset(name: str, fps: int, image_height: int, image_width: int,
     if ds.meta.fps != fps:
         mismatch.append(f"fps {ds.meta.fps} (requested {fps})")
     for key, ft in features.items():
-        if tuple(ds.meta.features[key]["shape"]) != tuple(ft["shape"]):
+        if key not in ds.meta.features:
+            mismatch.append(f"no {key}")
+        elif tuple(ds.meta.features[key]["shape"]) != tuple(ft["shape"]):
             mismatch.append(f"{key} shape {tuple(ds.meta.features[key]['shape'])} (requested {ft['shape']})")
     if mismatch:
         ds.finalize()
@@ -64,8 +68,12 @@ class EpisodeRecorder:
     """
 
     def __init__(self, name: str, fps: int, image_height: int, image_width: int,
-                 streaming_encoding: bool = False):
-        self._open_args = (name, fps, image_height, image_width, streaming_encoding)
+                 streaming_encoding: bool = False, joint_names=JOINT_NAMES, cameras=CAMERA_NAMES,
+                 robot_type: str = ROBOT_TYPE, task: str = TASK):
+        self._open_args = (name, fps, image_height, image_width, streaming_encoding, joint_names, cameras,
+                           robot_type)
+        self.cameras = cameras
+        self.task = task
         self.dataset = open_dataset(*self._open_args)
         self.frames = 0
 
@@ -78,7 +86,7 @@ class EpisodeRecorder:
         return self.dataset.meta.total_episodes
 
     def add(self, obs: dict, action: np.ndarray):
-        self.dataset.add_frame(make_frame(obs, action))
+        self.dataset.add_frame(make_frame(obs, action, self.cameras, self.task))
         self.frames += 1
 
     def save(self):
@@ -115,13 +123,13 @@ class EpisodeRecorder:
         self.dataset.finalize()
 
 
-def make_frame(obs: dict, action: np.ndarray) -> dict:
+def make_frame(obs: dict, action: np.ndarray, cameras=CAMERA_NAMES, task: str = TASK) -> dict:
     """One dataset frame: the observation at time t and the action applied at time t."""
     frame = {
         "observation.state": obs["state"].astype(np.float32),
         "action": np.asarray(action, dtype=np.float32),
-        "task": TASK,
+        "task": task,
     }
-    for cam in CAMERA_NAMES:
+    for cam in cameras:
         frame[f"observation.images.{cam}"] = obs[cam]
     return frame
