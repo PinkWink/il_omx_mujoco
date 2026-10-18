@@ -5,6 +5,7 @@
   python scripts/real_cameras.py --front-fps 15   # a front camera that cannot run at 30 fps
 
 ESC or closing the window quits. If front and wrist are swapped, fix the camera udev rule.
+An Innomaker camera is usually the wrist camera of the OMX kit (--find marks it); check the view anyway.
 """
 import argparse
 import time
@@ -28,7 +29,7 @@ def main():
         cams = Cameras(paths={d["dev"]: d["dev"] for d in devices}, fps={d["dev"]: 0 for d in devices})
         for d in devices:
             print(f"{d['dev']}: {d['model']}  (USB id {d['vendor']}:{d['product']}, port {d['usb_path']}, "
-                  f"{cams.cams[d['dev']].fps:g} fps)")
+                  f"{cams.cams[d['dev']].fps:g} fps)" + ("  <- likely wrist" if "innomaker" in d["model"].lower() else ""))
     else:
         cams = Cameras(fps=camera_fps(args))
         for name, cam in cams.cams.items():
