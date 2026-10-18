@@ -2,6 +2,7 @@
 
 Teleoperate a simulated OMX follower with a real OMX leader arm, to collect demos for
 imitation learning. Task: pick up the blue 30 mm cube and place it in the green tray.
+The same pipeline also runs on a real OMX follower with two USB cameras ([Real follower](#real-follower-omx-f--two-usb-cameras)).
 
 ## Setup
 
@@ -124,9 +125,52 @@ yaw +-45 deg. `teleop.py`, `record.py`, `scripted_pick_place.py` and `eval.py` a
 With scripted demos instead of human ones (Evaluation above), step 1 gave 100% at the training pose
 and 18% on random poses; 50 varied demos (`omx_cube_random50`) gave 100% and 98% (50 placements).
 
+## Real follower (OMX-F) + two USB cameras
+
+The leader drives a real OMX follower; a front and a wrist USB camera replace the sim cameras.
+Recording runs at 30 fps (ACT chunk 2 s = 60 steps); state and action are LeRobot's normalized units
+(arm -100..100, gripper 0..100), the leader's values passed straight through.
+
+One-time setup (lecture page ⑪): udev names `/dev/omx_follower` (board serial, like `/dev/omx_leader`)
+and `/dev/cam_front`, `/dev/cam_wrist` (USB vendor:product, or USB port for two identical cameras).
+
+```bash
+.venv/bin/python scripts/real_cameras.py --find        # which /dev/videoN is which camera, and its fps
+.venv/bin/python scripts/camera_udev_rule.py --front /dev/video2 --wrist /dev/video0 \
+  | sudo tee /etc/udev/rules.d/99-omx-cameras.rules
+.venv/bin/python scripts/leader_backup_eeprom.py --port /dev/omx_follower --ids 11 12 13 14 15 16 --name follower
+```
+
+```bash
+.venv/bin/python scripts/real_teleop.py [--log teleop.csv]   # leader -> follower, nothing recorded
+.venv/bin/python scripts/real_record.py                      # 10 demos -> data/real_strawberry_lift
+.venv/bin/python scripts/train.py --dataset real_strawberry_lift --steps 20000 --save-freq 5000
+.venv/bin/python scripts/real_run.py                         # the trained policy on the follower, no leader
+```
+
+All four real scripts take `--front-fps` / `--wrist-fps` (default 30, 0 = the camera's own rate) for
+cameras that cannot run at 30 fps; a slower camera only repeats frames, the dataset stays at `--fps 30`.
+
+Safety (`Follower` in `il_omx/real.py`): commands are clipped to `configs/follower_limits.json`
+(shoulder_lift >= -62, the folded follower's mechanical stop is -63.3), the follower glides to its
+start pose, an orange HIGH LOAD banner shows when an arm joint stays above 60 % load for 0.5 s, and a
+red MOTOR ERROR when a servo trips (red LED): unplug the follower's 12 V power and USB, then plug both
+back in. A blocked joint (a caught cable, the table) trips overload within seconds, so route cables
+with slack and move the leader slowly. `real_run.py` also limits each command to 8 units (14.4 deg)
+from the present position (`--max-step`) and stops a run after 30 s or on HIGH LOAD.
+A camera whose USB drops shows black with CAMERA LOST and reconnects by itself; an episode being
+recorded then is discarded.
+
+`calibration/omx_follower.json` matches the follower's EEPROM (homing 0, range 0..4095), so LeRobot
+never rewrites it on connect.
+
+Reference run: 10 human demos of "Pick up the strawberry and lift it." (3062 frames, 8-14 s each),
+ACT 20,000 steps (~16 min on an RTX 5060 Ti, final L1 0.059); the policy picked up and lifted the
+strawberry on the real follower.
+
 ## Lecture pages
 
-`docs/lecture/` holds the Korean lecture pages (one markdown file per page), the scripts that draw every
+`docs/lecture/` holds the Korean lecture pages (one markdown file per page; ①-⑩ MuJoCo, ⑪-⑫ real follower), the scripts that draw every
 figure and terminal capture from real runs, and `publish_confluence.py`. Viewer screenshots come from
 `dev/fake_leader.py` (teleop/record driven by a replayed IK demo) and `dev/capture_window.py`.
 
@@ -146,11 +190,15 @@ training pose from 2,000 steps; the 50 random demos are unstable there until 5,0
 | `il_omx/dataset.py` | LeRobotDataset features and `EpisodeRecorder` (save / discard / delete last) |
 | `il_omx/teleop_ui.py` | Viewer setup and key codes shared by `teleop.py` and `record.py` |
 | `il_omx/viewer_overlay.py` | `ViewerOverlay` (camera insets + banner) and the behind-the-robot view for the MuJoCo viewer |
-| `calibration/` | LeRobot leader calibration and the EEPROM backup |
+| `il_omx/real.py` | Real robot: `Follower` (soft limits, glide, load / error checks), `Cameras` (front + wrist, fps, USB-drop recovery), udev helpers |
+| `il_omx/real_ui.py` | `CameraWindow`: GLFW window with both camera views, banner and key hints (the venv's OpenCV is headless) |
+| `configs/follower_limits.json` | Soft joint limits for the real follower |
+| `calibration/` | LeRobot leader and follower calibration and the EEPROM backups (backups are git-ignored) |
 
 ## Conventions
 
-- **Action** = 6 joint position targets in radians: `Joint1..Joint5, Gripper`.
+- **Action** (sim) = 6 joint position targets in radians: `Joint1..Joint5, Gripper`. On the real follower:
+  6 targets in LeRobot normalized units, `shoulder_pan .. wrist_roll, gripper`.
 - **Arm joints**: leader degrees map 1:1 to sim joints (sign +1, offset 0) for arms assembled per the ROBOTIS manual.
 - **Gripper**: the leader trigger angle is applied directly, as LeRobot forwards the leader value to the real
   follower: `sim_rad = (leader - 50) * 3.6 deg`. Sim gripper 0 = closed. Releasing the trigger (60) opens
